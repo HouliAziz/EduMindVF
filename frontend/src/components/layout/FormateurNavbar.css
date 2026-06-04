@@ -1,0 +1,164 @@
+.fn-navbar {
+    background: var(--white);
+    border-bottom: 1px solid var(--gray-200);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.fn-inner {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    padding: 0 24px;
+    height: 58px;
+}
+
+/* Logo */
+.fn-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-right: 36px;
+    flex-shrink: 0;
+}
+
+.fn-logo-img {
+    height: 30px;
+    width: auto;
+    object-fit: contain;
+}
+
+.fn-logo-text {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.2;
+}
+
+.fn-logo-name {
+    font-family: var(--font-display);
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--navy);
+}
+
+.fn-logo-sub {
+    font-size: 10px;
+    color: var(--gray-400);
+}
+
+/* Links */
+.fn-links {
+    display: flex;
+    align-items: center;
+    flex: 1;
+    gap: 2px;
+}
+
+.fn-link {
+    padding: 6px 14px;
+    font-size: 13.5px;
+    font-weight: 500;
+    font-family: var(--font-display);
+    color: var(--gray-500);
+    border-radius: var(--radius-md);
+    transition: all .15s;
+    white-space: nowrap;
+    position: relative;
+    text-decoration: none;
+}
+
+.fn-link:hover {
+    color: var(--navy);
+    background: var(--navy-subtle);
+}
+
+.fn-link.active {
+    color: var(--orange);
+    font-weight: 600;
+}
+
+.fn-link.active::after {
+    content: '';
+    position: absolute;
+    bottom: -19px;
+    left: 14px;
+    right: 14px;
+    height: 2px;
+    background: var(--orange);
+    border-radius: 2px 2px 0 0;
+}
+
+/* Right */
+.fn-right {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-left: auto;
+}
+
+.fn-icon-btn {
+    position: relative;
+    width: 34px;
+    height: 34px;
+    border-radius: var(--radius-md);
+    background: none;
+    color: var(--gray-500);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all .15s;
+    cursor: pointer;
+}
+
+.fn-icon-btn:hover {
+    background: var(--gray-100);
+    color: var(--gray-700);
+}
+
+.fn-notif-dot {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    width: 7px;
+    height: 7px;
+    background: var(--orange);
+    border-radius: 50%;
+    border: 1.5px solid var(--white);
+}
+
+.fn-user {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 10px;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: background .15s;
+}
+
+.fn-user:hover {
+    background: var(--gray-100);
+}
+
+.fn-avatar {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: var(--orange);
+    color: var(--white);
+    font-size: 11px;
+    font-weight: 700;
+    font-family: var(--font-display);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.fn-username {
+    font-size: 13px;
+    font-weight: 600;
+    font-family: var(--font-display);
+    color: var(--gray-700);
+}

@@ -1,0 +1,14 @@
+.responsable-layout {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background: var(--gray-50);
+}
+
+.responsable-main {
+    flex: 1;
+    padding: 28px 32px;
+    max-width: 1400px;
+    width: 100%;
+    margin: 0 auto;
+}
