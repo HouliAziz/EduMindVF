@@ -1,0 +1,349 @@
+
+
+Cahier des charges :
+“EduMind : Gestion IA des Formations Internes & Externes”
+
+
+Introduction
+Nom du projet : EduMind (Module intégré à COSAP)Description :Conception et développement d'une application intelligente destinée à assister les utilisateurs dans la gestion de leurs tâches et événements quotidiens en exploitant des technologies avancées d'intelligence artificielle (IA).
+Durée estimée du projet : 6 mois.Langages de programmation et outils prévus :
+Langages :
+PHP (Symfony) — Backend principal intégré à COSAP.
+Dart (Flutter) — Application mobile Android/iOS.
+JavaScript / TypeScript — Interfaces web (React.js) ou Twig intégré.
+Python — Microservices IA (reconnaissance vocale + résumé automatique).
+Frameworks et bibliothèques : 
+Symfony — API et logique métier.
+Flutter — Application mobile.
+React.js — Interface d'administration (ou Twig si interface intégrée simplifiée).
+Vosk — Reconnaissance vocale 100% gratuite et offline (remplace Whisper).
+Mistral / LLaMA 2 local (via Ollama) — IA conversationnelle gratuite (remplace OpenAI GPT et évite carte bancaire).
+Rasa / Botpress Community Edition — Assistant conversationnel et intégration chatbot sans abonnement.
+LangChain (optionnel) — Orchestration IA locale.
+File d'attente & automatisation :
+RabbitMQ — Gestion des tâches asynchrones.
+Reporting & visualisation :
+Chart.js — Graphiques et tableaux de bord sans licence.
+Exports CSV / Excel — Reporting simple utilisable dans LibreOffice.
+Sécurité & Authentification :
+OIDC / OAuth2 via COSAP — Sans comptes externes.
+Chiffrement open-source (libsodium / OpenSSL).
+CI/CD & Déploiement :
+
+Git + GitLab CI / GitHub Actions — Automatisation builds gratuites.
+Docker Compose — Déploiement modularisé.
+Objectifs du projet
+Centralisation des informations de formation : Regrouper toutes les données relatives aux formations internes et externes dans un système unique afin de faciliter la consultation et la mise à jour.
+Planification structurée des sessions :Calculer automatiquement les coûts, revenus (pour formations externes), dépenses et marges, avec comparaison prévisionnel/réel.
+Gestion financière transparente :Assurer la gestion des hébergements, pauses café, tickets restaurants, supports pédagogiques, cadeaux, déplacements et autres dépenses liées à chaque formation.
+Tableaux de bord décisionnels :Mettre à disposition des indicateurs visuels permettant d’analyser l’activité formation (volume, coût, participants par pays, performance des formateurs, rentabilité, etc.).
+Amélioration continue :Recueillir les évaluations des participants et proposer des synthèses d’analyse permettant d’identifier les axes d’amélioration.
+Notifications et rappels intelligents :Automatiser l’envoi de rappels (dates de sessions, documents à fournir, attestations, évaluations à compléter) et notifications personnalisées selon le rôle de l’utilisateur.
+Support multi-langues et flexibilité :Assurer initialement un fonctionnement bilingue (Français et Anglais), avec possibilité d’extension future vers d’autres langues selon les besoins.
+Typologie des Formations
+Typologie des Formations Fonctionnalités Principales
+ Gestion du Catalogue
+Ajout, édition et archivage des fiches formations.
+Classification selon l’objectif, public cible, durée, domaine.
+Gestion des Formations Externes (Clients)
+Le responsable formation crée la formation et saisit :
+Titre, durée, lieu, objectifs.
+Liste des participants + pays d’origine.
+
+Un ou plusieurs formateurs, avec possibilité de répartition des jours entre formateurs.
+Montant de la formation :
+Prix par participant.
+Montant total facturé.
+Frais du/des formateur(s) (journée / horaire / déplacement).
+Logistique :
+Hébergements (nuitées, hôtel, coût total).
+Pauses cafés.
+Tickets restaurants.
+Cadeaux.
+Attestations.
+Formations Internes (Personnel de l’Entreprise)
+Deux scénarios :
+Formation dans les locaux :
+Sélection de formateurs internes/externes.
+Prise en charge des pauses café.
+Suivi des dépenses internes.
+Formation hors site :
+Hébergement / transport employés.
+Frais formateurs.
+Tous coûts comptabilisés comme dépenses formation.
+Planification des Sessions
+Création calendrier formation.
+Gestion multi-formateurs par jour.
+Intégration de la gestion des salles existante dans COSAP :
+Consultation de la disponibilité des salles.
+Capacité des salles.
+Réservation automatique lors de la validation.
+Module de Gestion des Dépenses
+Catégories :
+Frais formateurs.
+Hébergement.
+Transport.
+Tickets restaurants.
+Pauses café.
+Cadeaux.
+Fonctionnalités :
+Saisie des coûts.
+Ajout justificatifs.
+Calcul automatique du total.
+Comparaison budget/prévu.
+Espace Participant (Web + Mobile)
+Accès au planning.
+Accès documents de formation.
+Téléchargement des attestations.
+Évaluation de la formation.
+Évaluations & Analyse IA
+Questionnaires configurables.
+Résumés automatiques via IA (mots clés, tendances).
+Fonctionnalités principales
+Gestion du Catalogue des Formations
+Création, modification, duplication et archivage des fiches formations.
+Informations prises en charge : intitulé, objectif, durée, domaine, public cible.
+Classification des formations internes et externes.
+Possibilité d’associer des documents (programme, support PDF, liste matériel pédagogique).
+Historique des mises à jour.
+Planification des Sessions
+Création d’une session à partir d’une formation existante.
+Définition des dates de début et de fin.
+Possibilité de répartir la session entre un ou plusieurs formateurs, avec répartition par jour.
+Génération automatique du planning détaillé (par jour et par formateur).
+Gestion des changements (mise à jour, annulation, report).
+Gestion des salles (Intégration avec la gestion existante)
+Le système ne crée pas une nouvelle gestion des salles.
+Il utilise la gestion déjà existante.
+Consultation en temps réel de la disponibilité des salles.
+Réservation automatique ou manuelle de la salle choisie.
+Contrôle de capacité (nombre de participants).
+Gestion des conflits de réservation (alertes en cas de double planification).
+Gestion Logistiques
+Hébergement des participants (hôtel, nuitées, coûts).
+Pauses café et restauration.
+Cadeaux ou kits de participation.
+Supports pédagogiques.
+Transport ou indemnité de déplacement.
+Suivi des justificatifs.
+Les informations sont enregistrées par formation avec suivi des justificatifs.
+Le système calcule automatiquement les coûts globaux.
+Multi-Formateurs
+Possibilité d’associer un ou plusieurs formateurs à une même formation.
+Répartition des jours ou des créneaux entre formateurs.
+Suivi des frais de chaque formateur (montant fixé par jour ou par session).
+Historique d’intervention par formateur.
+Gestion Financière & dépenses
+Saisie des coûts par catégorie : formateurs, hébergement, transport, restauration, etc.
+Calcul automatique du coût total de la formation (somme des dépenses).
+Dans le cas des formations externes : saisie montant payé par participant + calcul du revenu total.
+Calcul du montant total collecté.
+Calcul de la marge : revenus – dépenses.
+Comparaison entre budget prévu et coût réel.
+Export comptable (CSV / PDF/ Excel).
+Notifications et Rappels Intelligent
+Rappel automatique aux participants & formateurs avant la session (délais configurables).
+Notification aux participants & formateurs en cas de changement de planning.
+Rappel post-formation pour encourager l’évaluation.
+Historique des notifications envoyées.
+Espace Participant (Web + Mobile)
+Affichage du planning personnel.
+Consultation des détails de formation.
+Consultation et téléchargement des documents fournis.
+Téléchargement de l’attestation (si la formation est validée).
+Saisie du questionnaire de satisfaction (formulaire d’évaluation).
+Espace Formateur
+Consultation du planning des sessions assignées.
+Accès aux informations logistiques : salle, horaires, pauses.
+Possibilité de déposer ou télécharger les supports pédagogiques.
+Suivi et validation des présences.
+Ajout de remarques pédagogiques ou observations.
+Consultation des évaluations et retours post-session.
+Historique de participation du formateur.
+Évaluations et Amélioration Continue
+Questionnaire d’évaluation configurable.
+Collecte de notes et commentaires.
+Analyse textuelle simplifiée des retours (mots clés positifs / négatifs / tendance).
+Synthèse automatique des résultats pour consultation directe par le responsable formation.
+Support Multi-langues (Version Initiale : Français & Anglais)
+Le participant peut sélectionner sa langue d’affichage.
+Attestations et notifications générées dans la langue choisie.
+Possibilité d’ajouter d’autres langues ultérieurement.
+Tableaux de bord et Reporting
+Le système met à disposition des tableaux de bord interactifs permettant au responsable formation et à la direction de suivre l’activité, la performance et les coûts liés aux formations. Les indicateurs sont mis à jour automatiquement à partir des données réelles saisies dans le système.
+4.11.1 Tableau de Bord Général
+Nombre total de formations organisées (interne / externe)
+Répartition mensuelle et annuelle des formations
+Durée moyenne des formations
+Taux de participation global
+Liste des formations à venir (vue calendrier)
+4.11.2 Tableau de Bord Participants
+Nombre total de participants par formation
+Participant moyen par session
+Répartition des participants :
+Par pays (pour les formations externes) & Entreprise / Service / 
+Par département ou service (pour les formations internes)
+Historique de participation par personne (traçabilité individuelle)
+4.11.3. Tableau de Bord Formateurs
+Nombre de sessions animées (par formateur)
+Répartition des interventions par période
+Coût total des formateurs (individuel et global)
+Performance moyenne issue des évaluations des participants
+4.11.4. Tableau de Bord Financier
+Formations externes :
+Montant total facturé,
+Montant payé par participant,
+Marge obtenue (revenus – dépenses).
+Formations internes :
+Coûts totaux engagés,
+Répartition des dépenses par catégorie (hébergement, déplacements, pauses café, etc.).
+Comparaison Budget Prévu vs Coût Réel.
+4.11.5 Tableau de Bord Logistique
+Coûts des pauses café par formation et cumulés
+Coûts des hôtels et déplacements
+Nombre et coût des tickets restaurants utilisés
+Coûts des supports pédagogiques et cadeaux distribués
+4.11.6 Tableau de Bord Satisfaction & Qualité
+Note moyenne de satisfaction par formation
+Évolution des notes au fil du temps
+Synthèse automatique des commentaires (mots-clés positifs / négatifs)
+Taux de réponse aux évaluations
+4.11.7 Export & Partage
+Export des données en CSV / Excel / PDF
+Possibilité de filtrer par :
+Période
+Type de formation
+Formateur
+Pays / Service
+Téléchargement automatique des rapports mensuels / trimestriels
+Technologies proposées
+Backend
+Technologie
+Rôle
+Justification
+PHP - Symfony
+Développement du module métier et API
+Framework déjà utilisé dans COSAP, stable et maintenable
+PostgreSQL
+Base de données
+Déjà utilisée dans COSAP, robuste et open-source
+MinIO
+Stockage fichiers (attestations, supports, justificatifs)
+Alternative gratuite et locale à AWS S3
+
+Frontend (Web)
+Technologie
+Rôle
+Twig (Symfony) ou React.js
+Interface web d’administration (selon complexité souhaitée)
+HTML / CSS / Bootstrap
+Mise en page simple, responsive, facilement maintenable
+Chart.js
+Visualisation graphique des tableaux de bord (open-source, sans limites)
+
+Application mobile
+Technologie
+Rôle
+Flutter (Dart)
+Développement de l’application mobile participant / formateur (Android + iOS avec un seul code)
+
+IA Conversationnelle & analyse
+Technologie
+Rôle
+Justification
+Rasa ou Botpress CE
+
+
+
+Chatbot conversationnel (texte & vocal si nécessaire)
+
+
+
+Open-source, offline possible, pas de carte bancaire nécessaire
+
+
+
+Ollama avec Mistral / LLaMA 2
+
+
+
+Génération de texte + synthèse des évaluations
+
+
+
+IA exécutée en local, aucune dépendance API externe
+
+
+
+Vosk Speech-to-Text
+
+
+
+Reconnaissance vocale offline
+
+
+
+Gratuit, fonctionne sans internet, adapté pour conversationnel
+
+
+File d’attente & authentification
+Technologie
+Rôle
+OAuth2 / SSO COSAP
+Connexion sécurisée sans comptes supplémentaires
+OpenSSL / Libsodium
+Chiffrement des données sensibles
+
+Déploiement & collaboration
+Technologie
+Rôle
+Git + GitLab/GitHub
+Versionning du code
+Docker / Docker Compose
+Déploiement et isolation des services
+CI/CD GitHub Actions ou GitLab CI
+Automatisation des builds et tests
+
+Déroulement du projet
+Phase
+Durée
+Livrables
+Analyse & Conception
+4 semaines
+Spécifications fonctionnelles + maquettes UI
+Développement Backend & API
+6 semaines
+Module gestion formations + API IA
+Développement Front Web & Mobile
+6 semaines
+Interface administrative + Espace utilisateur
+Intégration IA (Chat + Vocal + Teams)
+4 semaines
+Copilote conversationnel fonctionnel
+Tests & Validation
+4 semaines
+Tests unitaires + Usability test + RGPD
+Déploiement & Documentation
+2 semaines
+Manuel utilisateur + guide maintenance
+Contrainte et exigences
+Contraintes fonctionnelles :
+L’utilisateur doit toujours pouvoir modifier manuellement les décisions de l’IA
+Le système doit fonctionner même si les modules IA sont temporairement indisponibles
+Contraintes techniques :
+Intégration API avec COSAP (compte utilisateur, notifications internes)
+Compatibilité multi-support : navigateur, mobile, Teams
+Confidentialité & RGPD :
+Stockage sécurisé des données de participants via chiffrement
+Journalisation des actions IA pour auditabilité
+Consentement explicite pour les captations vocales
+Livrables attendus
+Plateforme web intégrée à COSAP
+Application mobile (Flutter)
+Copilote IA (Chat + Vocal + Teams)
+Tableau de bord analytique
+Documentation technique + utilisateurs
+Rapport final + soutenance
+Conclusion
+Le module “EduMind” modernise en profondeur la gestion des formations internes, en introduisant automatisation intelligente, pilotage en temps réel et interaction vocale. 
+Ce projet permettra à l’entreprise d’améliorer l’efficacité opérationnelle des formations tout en offrant une expérience enrichissante et personnalisée aux collaborateurs.

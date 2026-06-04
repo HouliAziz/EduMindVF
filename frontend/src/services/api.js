@@ -95,6 +95,8 @@ export const financeAPI = {
   dashboard: (params) => api.get('/finance/dashboard', { params }),
   sessionDashboard: (sessionId) => api.get(`/finance/session/${sessionId}/dashboard`),
   saisirDepense: (data) => api.post('/finance/depense', data),
+  exportCsv: (params) => api.get('/finance/export/csv', { params, responseType: 'blob' }),
+  exportJson: (params) => api.get('/finance/export/json', { params }),
 }
 
 // ─── Documents ───────────────────────────────────────────────────────────────

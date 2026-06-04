@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  # Message Broker for Async Tasks
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: edumind_mq
+    restart: always
+    ports:
+      - "5672:5672"     # AMQP protocol
+      - "15672:15672"   # Management Dashboard (Username/Password: guest/guest)
+    volumes:
+      - mqdata:/var/lib/rabbitmq
+
+  # S3-Compatible Object Storage
+  minio:
+    image: minio/minio:latest
+    container_name: edumind_storage
+    restart: always
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin_password
+    ports:
+      - "9000:9000"     # API port
+      - "9001:9001"     # Web Console
+    volumes:
+      - miniodata:/data
+
+volumes:
+  mqdata:
+  miniodata:

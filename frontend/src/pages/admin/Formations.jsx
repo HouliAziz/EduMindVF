@@ -7,7 +7,7 @@ import './Formations.css'
 // ─── Status display map ───────────────────────────────────────────────────────
 const STATUT_STYLE = {
   ACTIF: { cls: 'badge-active', label: 'ACTIF' },
-  ACTIVE: { cls: 'badge-active', label: 'ACTIF' },
+  ACTIVE: { cls: 'badge-active', label: 'ACTIVE' },
   BROUILLON: { cls: 'badge-draft', label: 'BROUILLON' },
   PLANIFIEE: { cls: 'badge-planned', label: 'PLANIFIÉ' },
   TERMINEE: { cls: 'badge-ended', label: 'TERMINÉ' },

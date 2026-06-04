@@ -3,8 +3,8 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
   PieChart, Pie, Cell
 } from 'recharts'
-import { TrendingUp, TrendingDown, Target, Percent, Search, Table, Calendar, BarChart2, Loader2, AlertCircle } from 'lucide-react'
-import { financeAPI } from '../../services/api'
+import { TrendingUp, TrendingDown, Target, Search, FileText, FileSpreadsheet, Loader2, AlertCircle, ChevronDown } from 'lucide-react'
+import { financeAPI, formationsAPI } from '../../services/api'
 import './Finances.css'
 
 const MONTH_NAMES = ['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc']
@@ -18,11 +18,15 @@ function getCurrentPeriod() {
 
 export default function Finances() {
   const [period, setPeriod] = useState('Ce mois')
-  const [search, setSearch] = useState('')
-  const [viewMode, setViewMode] = useState('bar')
+  const [formationId, setFormationId] = useState('')
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [allFormations, setAllFormations] = useState([])
+
+  useEffect(() => {
+    formationsAPI.list().then(({ data }) => setAllFormations(data || []))
+  }, [])
 
   useEffect(() => {
     setLoading(true)
@@ -32,6 +36,7 @@ export default function Finances() {
     if (period === 'Ce mois') { params = { annee: p.annee, mois: p.mois } }
     else if (period === 'Trimestre') { params = { annee: p.annee, trimestre: p.trimestre } }
     else { params = { annee: p.annee } }
+    if (formationId) params.formationId = formationId
 
     financeAPI.dashboard(params)
       .then(({ data: res }) => setData(res))
@@ -40,7 +45,40 @@ export default function Finances() {
         setError('Impossible de charger les données financières.')
       })
       .finally(() => setLoading(false))
-  }, [period])
+  }, [period, formationId])
+
+  const handleExportCSV = async () => {
+    const p = getCurrentPeriod()
+    let params = {}
+    if (period === 'Ce mois') { params = { annee: p.annee, mois: p.mois } }
+    else if (period === 'Trimestre') { params = { annee: p.annee, trimestre: p.trimestre } }
+    else { params = { annee: p.annee } }
+    if (formationId) params.formationId = formationId
+    try {
+      const res = await financeAPI.exportCsv(params)
+      const url = window.URL.createObjectURL(new Blob([res.data]))
+      const a = document.createElement('a')
+      a.href = url; a.download = 'rapport_finances.csv'; a.click()
+      window.URL.revokeObjectURL(url)
+    } catch (err) { console.error('Export CSV error:', err) }
+  }
+
+  const handleExportPDF = async () => {
+    const p = getCurrentPeriod()
+    let params = {}
+    if (period === 'Ce mois') { params = { annee: p.annee, mois: p.mois } }
+    else if (period === 'Trimestre') { params = { annee: p.annee, trimestre: p.trimestre } }
+    else { params = { annee: p.annee } }
+    if (formationId) params.formationId = formationId
+    try {
+      const res = await financeAPI.exportJson(params)
+      const blob = new Blob([JSON.stringify(res.data, null, 2)], { type: 'application/json' })
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url; a.download = 'rapport_finances.json'; a.click()
+      window.URL.revokeObjectURL(url)
+    } catch (err) { console.error('Export JSON error:', err) }
+  }
 
   if (loading) {
     return (
@@ -84,10 +122,22 @@ export default function Finances() {
             ))}
           </div>
           <div className="view-icons">
-            <button className={`view-icon-btn ${viewMode === 'bar' ? 'active' : ''}`} onClick={() => setViewMode('bar')}><BarChart2 size={16} /></button>
-            <button className={`view-icon-btn ${viewMode === 'table' ? 'active' : ''}`} onClick={() => setViewMode('table')}><Table size={16} /></button>
-            <button className={`view-icon-btn ${viewMode === 'cal' ? 'active' : ''}`} onClick={() => setViewMode('cal')}><Calendar size={16} /></button>
+            <button className="view-icon-btn" onClick={handleExportPDF} title="Exporter PDF"><FileText size={16} /><span>PDF</span></button>
+            <button className="view-icon-btn" onClick={handleExportCSV} title="Exporter Excel"><FileSpreadsheet size={16} /><span>Excel</span></button>
           </div>
+        </div>
+      </div>
+
+      {/* Formation filter */}
+      <div className="fin-formation-filter">
+        <div className="fin-search">
+          <Search size={14} />
+          <select value={formationId} onChange={e => setFormationId(e.target.value)}>
+            <option value="">Toutes les formations</option>
+            {allFormations.filter(f => f.statut === 'ACTIVE').map(f => (
+              <option key={f.id} value={f.id}>{f.titre}</option>
+            ))}
+          </select>
         </div>
       </div>
 
@@ -173,10 +223,6 @@ export default function Finances() {
       <div className="card fin-table-card">
         <div className="fin-table-header">
           <h3>Détail financier par formation</h3>
-          <div className="fin-search">
-            <Search size={13} />
-            <input placeholder="Rechercher..." value={search} onChange={e => setSearch(e.target.value)} />
-          </div>
         </div>
         <div className="table-wrap" style={{ overflowX: 'auto' }}>
           <table className="data-table" style={{ minWidth: 800 }}>
@@ -195,9 +241,7 @@ export default function Finances() {
               </tr>
             </thead>
             <tbody>
-              {(formationsDetail || [])
-                .filter(f => f.nom?.toLowerCase().includes(search.toLowerCase()))
-                .map((f, i) => (
+              {(formationsDetail || []).map((f, i) => (
                 <tr key={i}>
                   <td><span className="formation-title">{f.nom}</span></td>
                   <td><strong style={{ color: 'var(--success)' }}>{formatCurrency(f.revenus)}</strong></td>

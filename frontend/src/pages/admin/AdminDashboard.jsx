@@ -11,13 +11,15 @@ import './AdminDashboard.css'
 const MONTH_NAMES = ['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc']
 
 const STATUT_MAP = {
-  EN_COURS:  { label: 'EN COURS', cls: 'badge-active' },
-  PLANIFIEE: { label: 'PLANIFIÉ', cls: 'badge-planned' },
+  ACTIVE:    { label: 'ACTIVE',   cls: 'badge-active' },
+  ACTIF:     { label: 'ACTIF',    cls: 'badge-active' },
+  BROUILLON: { label: 'BROUILLON', cls: 'badge-draft' },
+  EN_ATTENTE:{ label: 'EN ATTENTE', cls: 'badge-draft' },
+  VALIDEE:   { label: 'VALIDÉE',  cls: 'badge-planned' },
   TERMINEE:  { label: 'TERMINÉ',  cls: 'badge-ended' },
+  ARCHIVEE:  { label: 'ARCHIVÉE', cls: 'badge-ended' },
+  REJETEE:   { label: 'REJETÉ',   cls: 'badge-cancelled' },
   ANNULEE:   { label: 'ANNULÉ',   cls: 'badge-cancelled' },
-  VALIDEE:   { label: 'VALIDÉ',   cls: 'badge-active' },
-  EN_ATTENTE: { label: 'EN ATTENTE', cls: 'badge-planned' },
-  REJETEE:   { label: 'REJETÉ', cls: 'badge-cancelled' },
 }
 
 export default function AdminDashboard() {

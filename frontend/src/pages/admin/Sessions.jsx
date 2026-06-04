@@ -290,6 +290,9 @@ export default function Sessions() {
     if (!form.formationId) errs.formationId = "Veuillez sélectionner une formation."
     if (!form.dateDebut) errs.dateDebut = "Date de début requise."
     if (!form.formateurId) errs.formateurId = "Veuillez sélectionner un formateur."
+    if (form.heureDebut && form.heureFin && form.heureDebut >= form.heureFin) {
+      errs.heureFin = "L'heure de fin doit être postérieure à l'heure de début."
+    }
     if (Object.keys(errs).length > 0) { setFormErrors(errs); return }
     setFormErrors({})
     setFormStep(2)
@@ -304,6 +307,9 @@ export default function Sessions() {
     if (!form.formationId) errors.formationId = "Veuillez sélectionner une formation."
     if (!form.dateDebut) errors.dateDebut = "Date de début requise."
     if (!form.formateurId) errors.formateurId = "Veuillez sélectionner un formateur."
+    if (form.heureDebut && form.heureFin && form.heureDebut >= form.heureFin) {
+      errors.heureFin = "L'heure de fin doit être postérieure à l'heure de début."
+    }
 
     if (Object.keys(errors).length > 0) { setFormErrors(errors); return }
 
@@ -636,7 +642,7 @@ export default function Sessions() {
                     <label>Formation <span className="req">*</span></label>
                     <select name="formationId" value={form.formationId} onChange={handleInputChange} className={formErrors.formationId ? 'has-error' : ''}>
                       <option value="">-- Choisir une formation --</option>
-                      {formations.map(f => (
+                      {formations.filter(f => f.statut === 'ACTIVE').map(f => (
                         <option key={f.id} value={f.id}>{f.titre} ({f.reference}) — Durée: {f.dureeJours} jours</option>
                       ))}
                     </select>
@@ -656,7 +662,8 @@ export default function Sessions() {
                     </div>
                     <div className="sess-field">
                       <label>Heure de fin</label>
-                      <input type="time" name="heureFin" value={form.heureFin} onChange={handleInputChange} />
+                      <input type="time" name="heureFin" value={form.heureFin} onChange={handleInputChange} className={formErrors.heureFin ? 'has-error' : ''} />
+                      {formErrors.heureFin && <span className="sess-field-error">{formErrors.heureFin}</span>}
                     </div>
                   </div>
 

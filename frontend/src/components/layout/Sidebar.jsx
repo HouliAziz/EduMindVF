@@ -2,7 +2,7 @@ import { NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import {
   LayoutDashboard, BookOpen, CalendarDays, Users, UserCheck,
-  Banknote, Bell, Brain, HelpCircle, Settings, LogOut, UserRoundCog, User
+  Banknote, Bell, Brain, LogOut, UserRoundCog, User
 } from 'lucide-react'
 import './Sidebar.css'
 
@@ -16,11 +16,7 @@ const navItems = [
   { icon: Brain,           label: 'Analyse IA',    to: '/admin/ia' },
 ]
 
-const bottomItems = [
-  { icon: User,       label: 'Profil',     to: '/admin/profile' },
-  { icon: HelpCircle, label: 'Support',    to: '/admin/support' },
-  { icon: Settings,   label: 'Paramètres', to: '/admin/settings' },
-]
+const bottomItems = []
 
 export default function Sidebar() {
   const { user, logout } = useAuth()
@@ -31,12 +27,15 @@ export default function Sidebar() {
     navigate('/login')
   }
 
+  const initials = user
+    ? `${user.prenom?.[0] ?? ''}${user.nom?.[0] ?? ''}`.toUpperCase()
+    : 'AD'
+
   return (
     <aside className="sidebar">
       {/* Logo */}
       <div className="sidebar-logo">
         <img src="/src/assets/logo-edumind.png" alt="EduMind" className="sidebar-logo-img" />
-        <span className="sidebar-by">by SFM Technologies</span>
       </div>
 
       {/* Main nav */}
@@ -57,18 +56,15 @@ export default function Sidebar() {
 
       {/* Bottom nav */}
       <div className="sidebar-bottom">
-        {bottomItems.map(({ icon: Icon, label, to }) => (
-          <NavLink
-            key={to}
-            to={to}
-            className={({ isActive }) =>
-              `sidebar-link ${isActive ? 'active' : ''}`
-            }
-          >
-            <Icon size={18} />
-            <span>{label}</span>
-          </NavLink>
-        ))}
+        <NavLink to="/admin/profile" className="sidebar-link sidebar-user">
+          <div className="sidebar-user-avatar">{initials}</div>
+          <div className="sidebar-user-info">
+            <span className="sidebar-user-name">
+              {user ? `${user.prenom} ${user.nom}` : 'Admin SFM'}
+            </span>
+            <span className="sidebar-user-role">Administrateur</span>
+          </div>
+        </NavLink>
         <button className="sidebar-link sidebar-logout" onClick={handleLogout}>
           <LogOut size={18} />
           <span>Logout</span>

@@ -1,0 +1,1235 @@
+
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, sans-serif; }
+  .wrap { background: #f5f5f7; }
+  .tabs { display: flex; flex-wrap: wrap; gap: 5px; padding: 9px 12px; background: #fff; border-bottom: 1px solid #ddd; position: sticky; top: 0; z-index: 10; }
+  .tab { padding: 5px 11px; border-radius: 20px; border: 1px solid #ccc; background: #fff; color: #444; font-size: 11px; cursor: pointer; white-space: nowrap; }
+  .tab.active { background: #534AB7; border-color: #534AB7; color: #fff; }
+  .view { display: none; padding: 13px; }
+  .view.active { display: flex; flex-wrap: wrap; gap: 13px; align-items: flex-start; }
+  .col { display: flex; flex-direction: column; gap: 13px; }
+  /* Classe UML */
+  .cls { border-radius: 8px; overflow: hidden; box-shadow: 0 1px 5px rgba(0,0,0,.13); min-width: 185px; }
+  .cls-hd { padding: 6px 10px; font-size: 12px; font-weight: 700; text-align: center; border-bottom: 1px solid rgba(0,0,0,.12); }
+  .cls-hd small { display: block; font-weight: 400; font-size: 9px; opacity: .8; }
+  .cls-hd .stereo { display: block; font-weight: 400; font-size: 9px; font-style: italic; opacity: .9; }
+  .nb { display:inline-block; background:#16a34a; color:#fff; font-size:7.5px; font-weight:700; padding:1px 4px; border-radius:5px; margin-left:3px; vertical-align:middle; }
+  /* Compartiments UML */
+  .comp { padding: 4px 10px 5px; border-bottom: 1px solid rgba(0,0,0,.1); }
+  .comp:last-child { border-bottom: none; }
+  .comp div { font-size: 10.5px; padding: 1.5px 0; color: #2a2a4a; font-family: 'Courier New', monospace; }
+  .comp div.fn { font-style: italic; color: #444; }
+  .comp div.ab { opacity: .55; font-style: italic; }
+  /* visibilité colorée */
+  .pub { color: #16a34a; font-weight: 700; }
+  .prv { color: #dc2626; font-weight: 700; }
+  .pro { color: #d97706; font-weight: 700; }
+  /* couleurs entités */
+  .purple .cls-hd { background:#534AB7; color:#fff; } .purple { background:#EEEDFE; }
+  .teal   .cls-hd { background:#0F6E56; color:#fff; } .teal   { background:#E1F5EE; }
+  .coral  .cls-hd { background:#993C1D; color:#fff; } .coral  { background:#FAECE7; }
+  .amber  .cls-hd { background:#854F0B; color:#fff; } .amber  { background:#FAEEDA; }
+  .gray   .cls-hd { background:#5F5E5A; color:#fff; } .gray   { background:#F1EFE8; }
+  .green  .cls-hd { background:#3B6D11; color:#fff; } .green  { background:#EAF3DE; }
+  .blue   .cls-hd { background:#185FA5; color:#fff; } .blue   { background:#E6F1FB; }
+  /* relations */
+  .rel { background:#fff; border:1px solid #ddd; border-radius:8px; padding:8px 12px; font-size:10.5px; color:#333; width:100%; }
+  .rel h4 { font-size:9px; font-weight:700; color:#888; text-transform:uppercase; letter-spacing:.05em; margin-bottom:5px; }
+  .rel div { padding:2px 0; border-bottom:1px dotted #eee; font-family: 'Courier New', monospace; }
+  .rel div:last-child { border:none; }
+  .arr { color:#534AB7; font-weight:700; font-family: system-ui; }
+  /* légende */
+  .leg { display:flex; gap:9px; flex-wrap:wrap; padding:5px 12px; background:#fff; border-bottom:1px solid #eee; font-size:10px; color:#555; align-items:center; }
+  .leg span { display:flex; align-items:center; gap:3px; }
+  .dot { width:8px; height:8px; border-radius:2px; display:inline-block; }
+  .vis-leg { font-family:'Courier New',monospace; font-size:10px; }
+</style>
+
+<div class="wrap">
+<div class="tabs">
+  <button class="tab active" onclick="show('base',this)">Base & Auth</button>
+  <button class="tab" onclick="show('formation',this)">Formation</button>
+  <button class="tab" onclick="show('session',this)">Session & Planning</button>
+  <button class="tab" onclick="show('finance',this)">Finance</button>
+  <button class="tab" onclick="show('eval',this)">Évaluation & IA</button>
+  <button class="tab" onclick="show('notif',this)">Notifications</button>
+  <button class="tab" onclick="show('audit',this)">Audit & RGPD</button>
+  <button class="tab" onclick="show('async',this)">Async & Infra</button>
+  <button class="tab" onclick="show('services',this)">Services</button>
+</div>
+<div class="leg">
+  <span><span class="dot" style="background:#534AB7"></span>Entité principale</span>
+  <span><span class="dot" style="background:#0F6E56"></span>Pivot/Rôle</span>
+  <span><span class="dot" style="background:#993C1D"></span>Log/Transaction</span>
+  <span><span class="dot" style="background:#854F0B"></span>Document</span>
+  <span><span class="dot" style="background:#3B6D11"></span>Référentiel</span>
+  <span><span class="dot" style="background:#185FA5"></span>IA/Async</span>
+  <span><span class="dot" style="background:#5F5E5A"></span>Enum</span>
+  <span><span class="dot" style="background:#16a34a"></span>Ajout final</span>
+  <span class="vis-leg"><span class="pub">+</span> public &nbsp;<span class="prv">-</span> privé &nbsp;<span class="pro">#</span> protégé</span>
+</div>
+
+<!-- ═══════════════════════════════ VUE 1 : BASE & AUTH ═══════════════════════════════ -->
+<div class="view active" id="v-base">
+  <div class="col">
+    <div class="cls gray" style="width:220px">
+      <div class="cls-hd"><span class="stereo">«abstract»</span>BaseEntity</div>
+      <div class="comp">
+        <div><span class="pro">#</span> id: uuid</div>
+        <div><span class="pro">#</span> createdAt: datetime_immutable</div>
+        <div><span class="pro">#</span> updatedAt: datetime_immutable</div>
+      </div>
+      <div class="comp">
+        <div class="fn"><span class="pub">+</span> getId(): uuid</div>
+        <div class="fn"><span class="pub">+</span> getCreatedAt(): datetime</div>
+      </div>
+    </div>
+    <div class="cls green" style="width:220px">
+      <div class="cls-hd">Langue</div>
+      <div class="comp">
+        <div><span class="pub">+</span> code: string</div>
+        <div><span class="pub">+</span> label: string</div>
+        <div><span class="pub">+</span> isActive: boolean</div>
+      </div>
+    </div>
+    <div class="cls green" style="width:220px">
+      <div class="cls-hd">Pays</div>
+      <div class="comp">
+        <div><span class="pub">+</span> code: string (ISO 3166)</div>
+        <div><span class="pub">+</span> nomFr: string</div>
+        <div><span class="pub">+</span> nomEn: string</div>
+        <div><span class="pub">+</span> region: string</div>
+      </div>
+    </div>
+    <div class="cls green" style="width:220px">
+      <div class="cls-hd">Departement</div>
+      <div class="comp">
+        <div><span class="pub">+</span> code: string</div>
+        <div><span class="pub">+</span> nom: string</div>
+      </div>
+    </div>
+    <div class="cls green" style="width:220px">
+      <div class="cls-hd">EntrepriseClient <span class="nb">NEW</span></div>
+      <div class="comp">
+        <div><span class="prv">-</span> nom: string</div>
+        <div><span class="prv">-</span> adresse: string</div>
+        <div><span class="prv">-</span> paysId: uuid FK</div>
+        <div><span class="prv">-</span> contactNom: string</div>
+        <div><span class="prv">-</span> contactEmail: string</div>
+        <div><span class="prv">-</span> contactTel: string</div>
+        <div><span class="prv">-</span> actif: boolean</div>
+      </div>
+      <div class="comp">
+        <div class="fn"><span class="pub">+</span> getParticipants(): Participant[]</div>
+        <div class="fn"><span class="pub">+</span> getFactures(): FactureClient[]</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col">
+    <div class="cls purple" style="width:235px">
+      <div class="cls-hd">Utilisateur</div>
+      <div class="comp">
+        <div class="ab">↑ BaseEntity</div>
+        <div><span class="prv">-</span> cosapUserId: string</div>
+        <div><span class="prv">-</span> nom: string</div>
+        <div><span class="prv">-</span> prenom: string</div>
+        <div><span class="prv">-</span> email: string</div>
+        <div><span class="prv">-</span> passwordHash: string</div>
+        <div><span class="prv">-</span> telephone: string</div>
+        <div><span class="pub">+</span> type: TypeUtilisateur</div>
+        <div><span class="pub">+</span> langueId: uuid FK→Langue</div>
+        <div><span class="pub">+</span> actif: boolean</div>
+      </div>
+      <div class="comp">
+        <div class="fn"><span class="pub">+</span> login(): void</div>
+        <div class="fn"><span class="pub">+</span> logout(): void</div>
+        <div class="fn"><span class="pub">+</span> updateProfile(): void</div>
+        <div class="fn"><span class="pub">+</span> getNotifications(): Notification[]</div>
+        <div class="fn"><span class="pub">+</span> hasPermission(code): bool</div>
+      </div>
+    </div>
+    <div class="cls gray" style="width:235px">
+      <div class="cls-hd"><small>«enumeration»</small>TypeUtilisateur</div>
+      <div class="comp">
+        <div>ADMIN</div>
+        <div>RESPONSABLE_FORMATION</div>
+        <div>FORMATEUR</div>
+        <div>PARTICIPANT</div>
+        <div>DIRECTION</div>
+      </div>
+    </div>
+    <div class="cls teal" style="width:235px">
+      <div class="cls-hd">Role</div>
+      <div class="comp">
+        <div><span class="pub">+</span> code: string</div>
+        <div><span class="pub">+</span> libelle: string</div>
+      </div>
+      <div class="comp">
+        <div class="fn"><span class="pub">+</span> getPermissions(): Permission[]</div>
+      </div>
+    </div>
+    <div class="cls teal" style="width:235px">
+      <div class="cls-hd">Permission</div>
+      <div class="comp">
+        <div><span class="pub">+</span> code: string</div>
+        <div><span class="pub">+</span> libelle: string</div>
+        <div><span class="pub">+</span> module: string</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col">
+    <div class="cls teal" style="width:230px">
+      <div class="cls-hd">Formateur</div>
+      <div class="comp">
+        <div class="ab">↑ BaseEntity</div>
+        <div><span class="pub">+</span> utilisateurId: uuid FK</div>
+        <div><span class="prv">-</span> specialite: string</div>
+        <div><span class="prv">-</span> bio: text</div>
+        <div><span class="pub">+</span> typeFormateur: TypeFormateur</div>
+        <div><span class="prv">-</span> tarifJournalier: decimal(10,2)</div>
+        <div><span class="pub">+</span> paysId: uuid FK→Pays</div>
+        <div><span class="prv">-</span> organisme: string</div>
+        <div><span class="pub">+</span> actif: boolean</div>
+      </div>
+      <div class="comp">
+        <div class="fn"><span class="pub">+</span> getHistorique(): AffectationFormateur[]</div>
+        <div class="fn"><span class="pub">+</span> getScoreEvaluation(): decimal</div>
+        <div class="fn"><span class="pub">+</span> getNbSessionsAnimees(): int</div>
+      </div>
+    </div>
+    <div class="cls gray" style="width:230px">
+      <div class="cls-hd"><small>«enumeration»</small>TypeFormateur</div>
+      <div class="comp"><div>INTERNE</div><div>EXTERNE</div></div>
+    </div>
+    <div class="cls teal" style="width:230px">
+      <div class="cls-hd">Participant</div>
+      <div class="comp">
+        <div class="ab">↑ BaseEntity</div>
+        <div><span class="pub">+</span> utilisateurId: uuid FK</div>
+        <div><span class="pub">+</span> typeParticipant: TypeParticipant</div>
+        <div><span class="prv">-</span> entreprise: string</div>
+        <div><span class="pub">+</span> entrepriseClientId: uuid FK <span class="nb">NEW</span></div>
+        <div><span class="pub">+</span> paysId: uuid FK→Pays</div>
+        <div><span class="pub">+</span> departementId: uuid FK</div>
+        <div><span class="prv">-</span> telephone: string</div>
+        <div><span class="pub">+</span> langueId: uuid FK→Langue</div>
+        <div><span class="pub">+</span> actif: boolean</div>
+      </div>
+      <div class="comp">
+        <div class="fn"><span class="pub">+</span> getPlanning(): SessionFormation[]</div>
+        <div class="fn"><span class="pub">+</span> telechargerAttestation(): void</div>
+        <div class="fn"><span class="pub">+</span> getDocuments(): Document[]</div>
+      </div>
+    </div>
+    <div class="cls gray" style="width:230px">
+      <div class="cls-hd"><small>«enumeration»</small>TypeParticipant</div>
+      <div class="comp"><div>EMPLOYE</div><div>CLIENT</div></div>
+    </div>
+  </div>
+
+  <div class="rel">
+    <h4>Relations — Base &amp; Auth · cardinalités UML</h4>
+    <div><span class="arr">BaseEntity</span> ◁—— Utilisateur, Formateur, Participant, Formation, Session… (héritage)</div>
+    <div><span class="arr">Utilisateur</span> *——* Role (pivot user_role) · Role *——* Permission (pivot role_permission)</div>
+    <div><span class="arr">Formateur</span> 1——1 Utilisateur (utilisateurId) · Participant 1——1 Utilisateur</div>
+    <div><span class="arr">Participant</span> 0..1——1 EntrepriseClient · 0..1——1 Departement · 1——1 Pays</div>
+    <div><span class="arr">EntrepriseClient</span> 1——* Participant · 1——* FactureClient (formations externes)</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════ VUE 2 : FORMATION ═══════════════════════════════ -->
+<div class="view" id="v-formation">
+  <div class="col">
+    <div class="cls purple" style="width:240px">
+      <div class="cls-hd">Formation</div>
+      <div class="comp">
+        <div class="ab">↑ BaseEntity</div>
+        <div><span class="prv">-</span> reference: string</div>
+        <div><span class="prv">-</span> titre: string</div>
+        <div><span class="prv">-</span> description: text</div>
+        <div><span class="prv">-</span> objectifs: text</div>
+        <div><span class="prv">-</span> publicCible: string</div>
+        <div><span class="prv">-</span> domaine: string</div>
+        <div><span class="prv">-</span> dureeJours: integer</div>
+        <div><span class="pub">+</span> typeFormation: TypeFormation</div>
+        <div><span class="pub">+</span> modeSession: ModeSession</div>
+        <div><span class="pub">+</span> statut: StatutFormation</div>
+        <div><span class="pub">+</span> langueId: uuid FK→Langue</div>
+        <div><span class="pub">+</span> archivee: boolean</div>
+        <div><span class="pub">+</span> creePar: uuid FK→Utilisateur</div>
+      </div>
+      <div class="comp">
+        <div class="fn"><span class="pub">+</span> archiver(): void</div>
+        <div class="fn"><span class="pub">+</span> dupliquer(): Formation</div>
+        <div class="fn"><span class="pub">+</span> getHistorique(): HistoriqueFormation[]</div>
+        <div class="fn"><span class="pub">+</span> getSessions(): SessionFormation[]</div>
+      </div>
+    </div>
+    <div class="cls coral" style="width:240px">
+      <div class="cls-hd">HistoriqueFormation</div>
+      <div class="comp">
+        <div class="ab">↑ BaseEntity</div>
+        <div><span class="pub">+</span> formationId: uuid FK</div>
+        <div><span class="prv">-</span> version: integer</div>
+        <div><span class="prv">-</span> champModifie: string</div>
+        <div><span class="prv">-</span> ancienneValeur: text</div>
+        <div><span class="prv">-</span> nouvelleValeur: text</div>
+        <div><span class="pub">+</span> modifiePar: uuid FK</div>
+        <div><span class="prv">-</span> dateModification: datetime_immutable</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col">
+    <div class="cls gray" style="width:195px">
+      <div class="cls-hd"><small>«enumeration»</small>TypeFormation</div>
+      <div class="comp"><div>INTERNE</div><div>EXTERNE</div></div>
+    </div>
+    <div class="cls gray" style="width:195px">
+      <div class="cls-hd"><small>«enumeration»</small>ModeSession</div>
+      <div class="comp">
+        <div>SUR_SITE</div><div>HEBERGEMENT</div>
+        <div>CHEZ_CLIENT</div><div>DISTANCIEL</div>
+      </div>
+    </div>
+    <div class="cls gray" style="width:195px">
+      <div class="cls-hd"><small>«enumeration»</small>StatutFormation</div>
+      <div class="comp">
+        <div>BROUILLON</div><div>VALIDEE</div>
+        <div>ACTIVE</div><div>ARCHIVEE</div>
+      </div>
+    </div>
+    <div class="cls green" style="width:195px">
+      <div class="cls-hd">DemandeFormation</div>
+      <div class="comp">
+        <div class="ab">↑ BaseEntity</div>
+        <div><span class="prv">-</span> titre: string</div>
+        <div><span class="prv">-</span> description: text</div>
+        <div><span class="pub">+</span> demandePar: uuid FK</div>
+        <div><span class="pub">+</span> statut: string</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col">
+    <div class="cls amber" style="width:225px">
+      <div class="cls-hd">Document</div>
+      <div class="comp">
+        <div class="ab">↑ BaseEntity</div>
+        <div><span class="prv">-</span> nomFichier: string</div>
+        <div><span class="prv">-</span> cheminMinIO: string</div>
+        <div><span class="prv">-</span> mimeType: string</div>
+        <div><span class="pub">+</span> typeDocument: TypeDocument</div>
+        <div><span class="prv">-</span> tailleBits: integer</div>
+        <div><span class="pub">+</span> langueId: uuid FK</div>
+        <div><span class="pub">+</span> entiteType: string</div>
+        <div><span class="pub">+</span> entiteId: uuid</div>
+        <div><span class="pub">+</span> uploadePar: uuid FK</div>
+        <div><span class="prv">-</span> dateUpload: datetime_immutable</div>
+      </div>
+      <div class="comp">
+        <div class="fn"><span class="pub">+</span> telecharger(): string</div>
+        <div class="fn"><span class="pub">+</span> supprimer(): void</div>
+      </div>
+    </div>
+    <div class="cls gray" style="width:225px">
+      <div class="cls-hd"><small>«enumeration»</small>TypeDocument</div>
+      <div class="comp">
+        <div>PROGRAMME · SUPPORT_PEDAGOGIQUE</div>
+        <div>JUSTIFICATIF · TICKET_RESTAURANT</div>
+        <div>PAUSE_CAFE · LISTE_MATERIEL</div>
+        <div>ATTESTATION · AUTRE</div>
+      </div>
+    </div>
+    <div class="cls coral" style="width:225px">
+      <div class="cls-hd">Questionnaire</div>
+      <div class="comp">
+        <div class="ab">↑ BaseEntity</div>
+        <div><span class="pub">+</span> formationId: uuid FK</div>
+        <div><span class="prv">-</span> titre: string</div>
+        <div><span class="pub">+</span> actif: boolean</div>
+        <div><span class="pub">+</span> creePar: uuid FK</div>
+      </div>
+      <div class="comp">
+        <div class="fn"><span class="pub">+</span> activer(): void</div>
+        <div class="fn"><span class="pub">+</span> dupliquer(): Questionnaire</div>
+        <div class="fn"><span class="pub">+</span> getQuestions(): Question[]</div>
+      </div>
+    </div>
+    <div class="cls teal" style="width:225px">
+      <div class="cls-hd">Question</div>
+      <div class="comp">
+        <div class="ab">↑ BaseEntity</div>
+        <div><span class="pub">+</span> questionnaireId: uuid FK</div>
+        <div><span class="prv">-</span> texte: string</div>
+        <div><span class="pub">+</span> typeQuestion: TypeQuestion</div>
+        <div><span class="prv">-</span> ordre: integer</div>
+        <div><span class="pub">+</span> obligatoire: boolean</div>
+      </div>
+      <div class="comp">
+        <div class="fn"><span class="pub">+</span> getOptions(): QuestionOption[]</div>
+      </div>
+    </div>
+    <div class="cls teal" style="width:225px">
+      <div class="cls-hd">QuestionOption <span class="nb">NEW</span></div>
+      <div class="comp">
+        <div class="ab">↑ BaseEntity</div>
+        <div><span class="pub">+</span> questionId: uuid FK</div>
+        <div><span class="prv">-</span> texte: string</div>
+        <div><span class="prv">-</span> ordre: integer</div>
+        <div><span class="pub">+</span> valeurScore: decimal(5,2)</div>
+      </div>
+    </div>
+    <div class="cls gray" style="width:225px">
+      <div class="cls-hd"><small>«enumeration»</small>TypeQuestion</div>
+      <div class="comp">
+        <div>NOTE · TEXTE_LIBRE</div>
+        <div>CHOIX_UNIQUE · CHOIX_MULTIPLE · OUI_NON</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="rel">
+    <h4>Relations — Formation · cardinalités</h4>
+    <div><span class="arr">Formation</span> 1——* HistoriqueFormation · 1——* Document (entiteType='Formation') · 1——* SessionFormation</div>
+    <div><span class="arr">Formation</span> 1——* Questionnaire · Questionnaire 1——* Question</div>
+    <div><span class="arr">Question</span> 1——* QuestionOption (si CHOIX_UNIQUE ou CHOIX_MULTIPLE) <span class="nb">NEW</span></div>
+    <div><span class="arr">Document.entiteType + entiteId</span> = relation polymorphique (Formation, Session, Depense…)</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════ VUE 3 : SESSION & PLANNING ═══════════════════════════════ -->
+<div class="view" id="v-session">
+  <div class="col">
+    <div class="cls purple" style="width:245px">
+      <div class="cls-hd">SessionFormation</div>
+      <div class="comp">
+        <div class="ab">↑ BaseEntity</div>
+        <div><span class="prv">-</span> codeSession: string</div>
+        <div><span class="pub">+</span> formationId: uuid FK</div>
+        <div><span class="prv">-</span> dateDebut: date</div>
+        <div><span class="prv">-</span> dateFin: date</div>
+        <div><span class="prv">-</span> heureDebut: time</div>
+        <div><span class="prv">-</span> heureFin: time</div>
+        <div><span class="prv">-</span> lieu: string</div>
+        <div><span class="pub">+</span> modeSession: ModeSession</div>
+        <div><span class="pub">+</span> statut: StatutSession</div>
+        <div><span class="prv">-</span> nbParticipantsPrevu: integer</div>
+        <div><span class="prv">-</span> commentaires: text</div>
+        <div><span class="pub">+</span> creePar: uuid FK</div>
+      </div>
+      <div class="comp">
+        <div class="fn"><span class="pub">+</span> annuler(): void</div>
+        <div class="fn"><span class="pub">+</span> reporter(): void</div>
+        <div class="fn"><span class="pub">+</span> genererPlanning(): PlanningJour[]</div>
+        <div class="fn"><span class="pub">+</span> notifierChangements(): void</div>
+        <div class="fn"><span class="pub">+</span> calculerCoutTotal(): decimal</div>
+        <div class="fn"><span class="pub">+</span> calculerMarge(): decimal</div>
+      </div>
+    </div>
+    <div class="cls coral" style="width:245px">
+      <div class="cls-hd">HistoriqueSession</div>
+      <div class="comp">
+        <div class="ab">↑ BaseEntity</div>
+        <div><span class="pub">+</span> sessionId: uuid FK</div>
+        <div><span class="prv">-</span> ancienStatut: StatutSession</div>
+        <div><span class="prv">-</span> nouveauStatut: StatutSession</div>
+        <div><span class="prv">-</span> raisonChangement: string</div>
+        <div><span class="pub">+</span> modifiePar: uuid FK</div>
+        <div><span class="prv">-</span> dateChangement: datetime_immutable</div>
+      </div>
+    </div>
+    <div class="cls gray" style="width:245px">
+      <div class="cls-hd"><small>«enumeration»</small>StatutSession</div>
+      <div class="comp">
+        <div>PLANIFIEE · VALIDEE · EN_COURS</div>
+        <div>TERMINEE · ANNULEE · REPORTEE</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col">
+    <div class="cls teal" style="width:235px">
+      <div class="cls-hd">PlanningJour <span class="nb">NEW</span></div>
+      <div class="comp">
+        <div class="ab">↑ BaseEntity</div>
+        <div><span class="pub">+</span> sessionId: uuid FK</div>
+        <div><span class="prv">-</span> date: date</div>
+        <div><span class="prv">-</span> heureDebut: time</div>
+        <div><span class="prv">-</span> heureFin: time</div>
+        <div><span class="prv">-</span> theme: string</div>
+        <div><span class="prv">-</span> notes: text</div>
+        <div><span class="pub">+</span> salleId: uuid FK→Salle</div>
+      </div>
+      <div class="comp">
+        <div class="fn"><span class="pub">+</span> getFormateurs(): AffectationFormateur[]</div>
+        <div class="fn"><span class="pub">+</span> getPresences(): PresenceParticipant[]</div>
+      </div>
+    </div>
+    <div class="cls teal" style="width:235px">
+      <div class="cls-hd">AffectationFormateur</div>
+      <div class="comp">
+        <div class="ab">↑ BaseEntity</div>
+        <div><span class="pub">+</span> sessionId: uuid FK</div>
+        <div><span class="pub">+</span> formateurId: uuid FK</div>
+        <div><span class="pub">+</span> planningJourId: uuid FK <span class="nb">NEW</span></div>
+        <div><span class="prv">-</span> heureDebut: time</div>
+        <div><span class="prv">-</span> heureFin: time</div>
+        <div><span class="prv">-</span> nbHeures: decimal(5,2)</div>
+        <div><span class="prv">-</span> nbJours: decimal(5,2)</div>
+        <div><span class="prv">-</span> montantPrevu: decimal(10,2)</div>
+        <div><span class="prv">-</span> remunerationReel: decimal(10,2)</div>
+        <div><span class="pub">+</span> unitFacturation: UnitFacturation</div>
+        <div><span class="pub">+</span> aDeposeSupport: boolean</div>
+        <div><span class="prv">-</span> commentaires: text</div>
+      </div>
+    </div>
+    <div class="cls gray" style="width:235px">
+      <div class="cls-hd"><small>«enumeration»</small>UnitFacturation</div>
+      <div class="comp"><div>JOUR · HEURE · SESSION · FORFAIT</div></div>
+    </div>
+    <div class="cls teal" style="width:235px">
+      <div class="cls-hd">RemarquePedagogique</div>
+      <div class="comp">
+        <div class="ab">↑ BaseEntity</div>
+        <div><span class="pub">+</span> planningJourId: uuid FK</div>
+        <div><span class="pub">+</span> formateurId: uuid FK</div>
+        <div><span class="prv">-</span> contenu: text</div>
+        <div><span class="pub">+</span> typeRemarque: TypeRemarque</div>
+        <div><span class="pub">+</span> visibleResponsable: boolean</div>
+      </div>
+    </div>
+    <div class="cls gray" style="width:235px">
+      <div class="cls-hd"><small>«enumeration»</small>TypeRemarque</div>
+      <div class="comp"><div>OBSERVATION · DIFFICULTE</div><div>SUGGESTION · AUTRE</div></div>
+    </div>
+  </div>
+
+  <div class="col">
+    <div class="cls coral" style="width:235px">
+      <div class="cls-hd">InscriptionClient</div>
+      <div class="comp">
+        <div class="ab">↑ BaseEntity</div>
+        <div><span class="pub">+</span> sessionId: uuid FK</div>
+        <div><span class="pub">+</span> participantId: uuid FK</div>
+        <div><span class="prv">-</span> dateInscription: date</div>
+        <div><span class="pub">+</span> statutPaiement: StatutPaiement</div>
+        <div><span class="prv">-</span> montantPaye: decimal(10,2)</div>
+        <div><span class="pub">+</span> statutPresence: StatutPresence</div>
+      </div>
+      <div class="comp">
+        <div class="fn"><span class="pub">+</span> confirmer(): void</div>
+        <div class="fn"><span class="pub">+</span> annuler(): void</div>
+        <div class="fn"><span class="pub">+</span> genererAttestation(): Attestation</div>
+      </div>
+    </div>
+    <div class="cls teal" style="width:235px">
+      <div class="cls-hd">PresenceParticipant</div>
+      <div class="comp">
+        <div class="ab">↑ BaseEntity</div>
+        <div><span class="pub">+</span> inscriptionId: uuid FK</div>
+        <div><span class="pub">+</span> planningJourId: uuid FK</div>
+        <div><span class="prv">-</span> datePresence: date</div>
+        <div><span class="prv">-</span> heureArrivee: time</div>
+        <div><span class="prv">-</span> heureDepart: time</div>
+        <div><span class="pub">+</span> present: boolean</div>
+        <div><span class="prv">-</span> remarque: string</div>
+        <div><span class="pub">+</span> valideParId: uuid FK→Formateur</div>
+        <div><span class="prv">-</span> valideAt: datetime_immutable</div>
+      </div>
+      <div class="comp">
+        <div class="fn"><span class="pub">+</span> valider(): void</div>
+      </div>
+    </div>
+    <div class="cls gray" style="width:235px">
+      <div class="cls-hd"><small>«enumeration»</small>StatutPresence</div>
+      <div class="comp"><div>PRESENT · ABSENT · RETARD · PARTIEL</div></div>
+    </div>
+    <div class="cls gray" style="width:235px">
+      <div class="cls-hd"><small>«enumeration»</small>StatutPaiement</div>
+      <div class="comp"><div>NON_PAYE · PARTIEL · PAYE</div></div>
+    </div>
+    <div class="cls amber" style="width:235px">
+      <div class="cls-hd">Attestation</div>
+      <div class="comp">
+        <div class="ab">↑ BaseEntity</div>
+        <div><span class="pub">+</span> inscriptionId: uuid FK</div>
+        <div><span class="prv">-</span> numeroAttestation: string</div>
+        <div><span class="pub">+</span> langueId: uuid FK</div>
+        <div><span class="prv">-</span> cheminMinIO: string</div>
+        <div><span class="prv">-</span> dateGeneration: datetime_immutable</div>
+        <div><span class="pub">+</span> statut: StatutAttestation</div>
+      </div>
+      <div class="comp">
+        <div class="fn"><span class="pub">+</span> generer(): void</div>
+        <div class="fn"><span class="pub">+</span> telecharger(): string</div>
+        <div class="fn"><span class="pub">+</span> revoquer(): void</div>
+      </div>
+    </div>
+    <div class="cls gray" style="width:235px">
+      <div class="cls-hd"><small>«enumeration»</small>StatutAttestation</div>
+      <div class="comp"><div>GENEREE · ENVOYEE · REVOQUEE</div></div>
+    </div>
+    <div class="cls gray" style="width:235px">
+      <div class="cls-hd">Salle <span class="nb">NEW</span></div>
+      <div class="comp">
+        <div class="ab">↑ BaseEntity (snapshot COSAP)</div>
+        <div><span class="pub">+</span> cosapSalleId: string</div>
+        <div><span class="prv">-</span> nom: string</div>
+        <div><span class="prv">-</span> batiment: string</div>
+        <div><span class="prv">-</span> capacite: integer</div>
+        <div><span class="prv">-</span> equipements: text</div>
+      </div>
+      <div class="comp">
+        <div class="fn"><span class="pub">+</span> verifierDisponibilite(): boolean</div>
+        <div class="fn"><span class="pub">+</span> reserver(): ReservationSalle</div>
+      </div>
+    </div>
+    <div class="cls gray" style="width:235px">
+      <div class="cls-hd">ReservationSalle</div>
+      <div class="comp">
+        <div class="ab">↑ BaseEntity</div>
+        <div><span class="pub">+</span> salleId: uuid FK→Salle</div>
+        <div><span class="pub">+</span> planningJourId: uuid FK</div>
+        <div><span class="prv">-</span> dateDebut: datetime_immutable</div>
+        <div><span class="prv">-</span> dateFin: datetime_immutable</div>
+        <div><span class="prv">-</span> capaciteSnapshot: integer</div>
+        <div><span class="pub">+</span> statut: StatutReservationSalle</div>
+        <div><span class="pub">+</span> reserveAuto: boolean</div>
+        <div><span class="prv">-</span> messageConflit: string</div>
+      </div>
+      <div class="comp">
+        <div class="fn"><span class="pub">+</span> confirmer(): void</div>
+        <div class="fn"><span class="pub">+</span> annuler(): void</div>
+        <div class="fn"><span class="pub">+</span> detecterConflit(): boolean</div>
+      </div>
+    </div>
+    <div class="cls gray" style="width:235px">
+      <div class="cls-hd"><small>«enumeration»</small>StatutReservationSalle</div>
+      <div class="comp"><div>EN_ATTENTE · CONFIRMEE · CONFLIT · ANNULEE</div></div>
+    </div>
+  </div>
+
+  <div class="rel">
+    <h4>Relations — Session &amp; Planning · cardinalités</h4>
+    <div><span class="arr">SessionFormation</span> 1——* PlanningJour · 1——* AffectationFormateur · 1——* InscriptionClient</div>
+    <div><span class="arr">SessionFormation</span> 1——1 BudgetSession · 1——* Depense · 1——* HistoriqueSession</div>
+    <div><span class="arr">PlanningJour</span> 1——1 ReservationSalle ——→ Salle · 1——* RemarquePedagogique <span class="nb">NEW lien</span></div>
+    <div><span class="arr">PlanningJour</span> 1——* AffectationFormateur (plusieurs formateurs/jour §4.2) · 1——* PresenceParticipant</div>
+    <div><span class="arr">InscriptionClient</span> 1——* PresenceParticipant · 1——0..1 Attestation</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════ VUE 4 : FINANCE ═══════════════════════════════ -->
+<div class="view" id="v-finance">
+  <div class="col">
+    <div class="cls purple" style="width:250px">
+      <div class="cls-hd">BudgetSession</div>
+      <div class="comp">
+        <div class="ab">↑ BaseEntity</div>
+        <div><span class="pub">+</span> sessionId: uuid FK</div>
+        <div><span class="prv">-</span> budgetPrevu: decimal(12,2)</div>
+        <div><span class="prv">-</span> coutReel: decimal(12,2)</div>
+        <div><span class="prv">-</span> revenusPrevu: decimal(12,2)</div>
+        <div><span class="prv">-</span> revenusReel: decimal(12,2)</div>
+        <div><span class="prv">-</span> margePrevu: decimal(12,2)</div>
+        <div><span class="prv">-</span> margeReel: decimal(12,2)</div>
+        <div><span class="prv">-</span> prixParParticipant: decimal(10,2)</div>
+        <div><span class="prv">-</span> montantFacturePrevu: decimal(12,2)</div>
+        <div><span class="prv">-</span> montantFactureReel: decimal(12,2)</div>
+      </div>
+      <div class="comp">
+        <div class="fn"><span class="pub">+</span> calculerMarge(): decimal</div>
+        <div class="fn"><span class="pub">+</span> comparerPrevisionReel(): array</div>
+        <div class="fn"><span class="pub">+</span> exporterCSV(): string</div>
+        <div class="fn"><span class="pub">+</span> exporterPDF(): string</div>
+      </div>
+    </div>
+    <div class="cls teal" style="width:250px">
+      <div class="cls-hd">FactureClient</div>
+      <div class="comp">
+        <div class="ab">↑ BaseEntity</div>
+        <div><span class="pub">+</span> sessionId: uuid FK</div>
+        <div><span class="pub">+</span> entrepriseClientId: uuid FK</div>
+        <div><span class="prv">-</span> numeroFacture: string</div>
+        <div><span class="prv">-</span> libelle: string</div>
+        <div><span class="prv">-</span> dateFacture: date</div>
+        <div><span class="prv">-</span> dateEcheance: date</div>
+        <div><span class="prv">-</span> montantHT: decimal(12,2)</div>
+        <div><span class="prv">-</span> montantTTC: decimal(12,2)</div>
+        <div><span class="pub">+</span> statutPaiement: StatutPaiement</div>
+      </div>
+      <div class="comp">
+        <div class="fn"><span class="pub">+</span> genererPDF(): string</div>
+        <div class="fn"><span class="pub">+</span> marquerPayee(): void</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col">
+    <div class="cls coral" style="width:235px">
+      <div class="cls-hd">Depense</div>
+      <div class="comp">
+        <div class="ab">↑ BaseEntity</div>
+        <div><span class="pub">+</span> sessionId: uuid FK</div>
+        <div><span class="pub">+</span> categorie: CategorieDepense</div>
+        <div><span class="prv">-</span> dateDepense: date</div>
+        <div><span class="prv">-</span> libelle: string</div>
+        <div><span class="prv">-</span> quantite: decimal(8,2)</div>
+        <div><span class="prv">-</span> montantUnitaire: decimal(10,2)</div>
+        <div><span class="prv">-</span> montantTotal: decimal(12,2)</div>
+        <div><span class="pub">+</span> saisieParId: uuid FK</div>
+      </div>
+      <div class="comp">
+        <div class="fn"><span class="pub">+</span> ajouterJustificatif(doc): void</div>
+        <div class="fn"><span class="pub">+</span> getJustificatifs(): Document[]</div>
+        <div class="fn"><span class="pub">+</span> supprimer(): void</div>
+      </div>
+    </div>
+    <div class="cls gray" style="width:235px">
+      <div class="cls-hd"><small>«enumeration»</small>CategorieDepense</div>
+      <div class="comp">
+        <div>FRAIS_FORMATEUR · HEBERGEMENT</div>
+        <div>TRANSPORT · RESTAURATION</div>
+        <div>PAUSE_CAFE · CADEAUX</div>
+        <div>SUPPORT_PEDAGOGIQUE · REMUNERATION · AUTRE</div>
+      </div>
+    </div>
+    <div class="cls amber" style="width:235px">
+      <div class="cls-hd">Hebergement</div>
+      <div class="comp">
+        <div class="ab">↑ BaseEntity</div>
+        <div><span class="pub">+</span> sessionId: uuid FK</div>
+        <div><span class="pub">+</span> participantId: uuid FK</div>
+        <div><span class="prv">-</span> nomHotel: string</div>
+        <div><span class="prv">-</span> dateArrivee: date</div>
+        <div><span class="prv">-</span> dateDepart: date</div>
+        <div><span class="prv">-</span> nbNuits: integer</div>
+        <div><span class="prv">-</span> coutParNuit: decimal(10,2)</div>
+        <div><span class="prv">-</span> coutTotal: decimal(10,2)</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col">
+    <div class="cls blue" style="width:230px">
+      <div class="cls-hd">ExportRapport</div>
+      <div class="comp">
+        <div class="ab">↑ BaseEntity</div>
+        <div><span class="pub">+</span> demandePar: uuid FK</div>
+        <div><span class="pub">+</span> typeExport: TypeExport</div>
+        <div><span class="prv">-</span> filtres: json</div>
+        <div><span class="prv">-</span> cheminFichier: string</div>
+        <div><span class="pub">+</span> statut: StatutExport</div>
+        <div><span class="prv">-</span> dateGeneration: datetime_immutable</div>
+      </div>
+      <div class="comp">
+        <div class="fn"><span class="pub">+</span> generer(): void</div>
+        <div class="fn"><span class="pub">+</span> telecharger(): string</div>
+      </div>
+    </div>
+    <div class="cls gray" style="width:230px">
+      <div class="cls-hd"><small>«enumeration»</small>TypeExport</div>
+      <div class="comp"><div>CSV · EXCEL · PDF</div></div>
+    </div>
+    <div class="cls gray" style="width:230px">
+      <div class="cls-hd"><small>«enumeration»</small>StatutExport</div>
+      <div class="comp"><div>EN_ATTENTE · EN_COURS · TERMINE · ECHEC</div></div>
+    </div>
+  </div>
+
+  <div class="rel">
+    <h4>Relations — Finance · cardinalités</h4>
+    <div><span class="arr">SessionFormation</span> 1——1 BudgetSession · 1——* Depense · 1——* Hebergement · 1——* FactureClient</div>
+    <div><span class="arr">Depense</span> 1——* Document (justificatifs, polymorphique entiteType='Depense')</div>
+    <div><span class="arr">FactureClient</span> *——1 EntrepriseClient · *——1 SessionFormation (formations externes §3.2)</div>
+    <div><span class="arr">ExportRapport</span> déclenche TacheAsynchrone (RabbitMQ) · filtres: période/type/formateur/pays §4.11.7</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════ VUE 5 : ÉVALUATION & IA ═══════════════════════════════ -->
+<div class="view" id="v-eval">
+  <div class="col">
+    <div class="cls purple" style="width:245px">
+      <div class="cls-hd">EvaluationSession</div>
+      <div class="comp">
+        <div class="ab">↑ BaseEntity</div>
+        <div><span class="pub">+</span> sessionId: uuid FK</div>
+        <div><span class="pub">+</span> participantId: uuid FK</div>
+        <div><span class="pub">+</span> questionnaireId: uuid FK</div>
+        <div><span class="prv">-</span> dateSoumission: datetime_immutable</div>
+        <div><span class="prv">-</span> scoreGlobal: decimal(5,2)</div>
+        <div><span class="prv">-</span> commentaire: text</div>
+        <div><span class="pub">+</span> analyse: boolean</div>
+      </div>
+      <div class="comp">
+        <div class="fn"><span class="pub">+</span> soumettre(): void</div>
+        <div class="fn"><span class="pub">+</span> getReponses(): ReponseEvaluation[]</div>
+        <div class="fn"><span class="pub">+</span> getAnalyseIA(): SyntheseEvaluation</div>
+      </div>
+    </div>
+    <div class="cls teal" style="width:245px">
+      <div class="cls-hd">ReponseEvaluation</div>
+      <div class="comp">
+        <div class="ab">↑ BaseEntity</div>
+        <div><span class="pub">+</span> evaluationId: uuid FK</div>
+        <div><span class="pub">+</span> questionId: uuid FK</div>
+        <div><span class="pub">+</span> optionId: uuid FK (nullable)</div>
+        <div><span class="prv">-</span> valeurTexte: text</div>
+        <div><span class="prv">-</span> note: decimal(5,2)</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col">
+    <div class="cls blue" style="width:250px">
+      <div class="cls-hd">SyntheseEvaluation</div>
+      <div class="comp">
+        <div class="ab">↑ BaseEntity</div>
+        <div><span class="pub">+</span> sessionId: uuid FK</div>
+        <div><span class="prv">-</span> dateSynthese: datetime_immutable</div>
+        <div><span class="prv">-</span> scoreMoyen: decimal(5,2)</div>
+        <div><span class="prv">-</span> tauxReponse: decimal(5,2)</div>
+        <div><span class="prv">-</span> nbRepondants: integer</div>
+        <div><span class="prv">-</span> motsClesPositifs: text</div>
+        <div><span class="prv">-</span> motsClesNegatifs: text</div>
+        <div><span class="prv">-</span> syntheseTexte: text</div>
+        <div><span class="pub">+</span> sourceIA: SourceIA</div>
+        <div><span class="pub">+</span> modifieManuellement: boolean</div>
+        <div><span class="prv">-</span> noteCorrection: text</div>
+      </div>
+      <div class="comp">
+        <div class="fn"><span class="pub">+</span> generer(): void</div>
+        <div class="fn"><span class="pub">+</span> corrigerManuellement(note): void</div>
+      </div>
+    </div>
+    <div class="cls blue" style="width:250px">
+      <div class="cls-hd">JournalActionIA</div>
+      <div class="comp">
+        <div class="ab">↑ BaseEntity</div>
+        <div><span class="pub">+</span> utilisateurId: uuid FK</div>
+        <div><span class="prv">-</span> typeAction: string</div>
+        <div><span class="prv">-</span> module: string</div>
+        <div><span class="pub">+</span> sourceIA: SourceIA</div>
+        <div><span class="prv">-</span> prompt: text</div>
+        <div><span class="prv">-</span> reponse: text</div>
+        <div><span class="prv">-</span> decisionProposee: text</div>
+        <div><span class="prv">-</span> decisionFinale: text</div>
+        <div><span class="pub">+</span> modificationManuelle: boolean</div>
+        <div><span class="prv">-</span> dateExecution: datetime_immutable</div>
+      </div>
+    </div>
+    <div class="cls gray" style="width:250px">
+      <div class="cls-hd"><small>«enumeration»</small>SourceIA</div>
+      <div class="comp">
+        <div>OLLAMA · RASA · BOTPRESS · VOSK</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col">
+    <div class="cls blue" style="width:235px">
+      <div class="cls-hd">ConversationChatbot</div>
+      <div class="comp">
+        <div class="ab">↑ BaseEntity</div>
+        <div><span class="pub">+</span> utilisateurId: uuid FK</div>
+        <div><span class="prv">-</span> sessionToken: string</div>
+        <div><span class="pub">+</span> canal: CanalNotification</div>
+        <div><span class="prv">-</span> debutAt: datetime_immutable</div>
+        <div><span class="prv">-</span> finAt: datetime_immutable</div>
+      </div>
+      <div class="comp">
+        <div class="fn"><span class="pub">+</span> getMessages(): MessageChatbot[]</div>
+      </div>
+    </div>
+    <div class="cls blue" style="width:235px">
+      <div class="cls-hd">MessageChatbot</div>
+      <div class="comp">
+        <div class="ab">↑ BaseEntity</div>
+        <div><span class="pub">+</span> conversationId: uuid FK</div>
+        <div><span class="pub">+</span> role: string (user|bot)</div>
+        <div><span class="prv">-</span> contenu: text</div>
+        <div><span class="pub">+</span> captureVocaleId: uuid FK (nullable)</div>
+        <div><span class="prv">-</span> envoyeAt: datetime_immutable</div>
+      </div>
+    </div>
+    <div class="cls blue" style="width:235px">
+      <div class="cls-hd">CaptureVocale</div>
+      <div class="comp">
+        <div class="ab">↑ BaseEntity</div>
+        <div><span class="pub">+</span> utilisateurId: uuid FK</div>
+        <div><span class="prv">-</span> nomFichier: string</div>
+        <div><span class="prv">-</span> cheminMinIO: string</div>
+        <div><span class="prv">-</span> dureeSecondes: integer</div>
+        <div><span class="pub">+</span> langueDetectee: uuid FK→Langue</div>
+        <div><span class="prv">-</span> transcription: text</div>
+        <div><span class="pub">+</span> sourceIA: SourceIA</div>
+        <div><span class="prv">-</span> dateCapture: datetime_immutable</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="rel">
+    <h4>Relations — Évaluation &amp; IA · cardinalités</h4>
+    <div><span class="arr">SessionFormation</span> 1——* EvaluationSession · 1——0..1 SyntheseEvaluation</div>
+    <div><span class="arr">EvaluationSession</span> 1——* ReponseEvaluation · ReponseEvaluation *——1 Question · 0..1——1 QuestionOption</div>
+    <div><span class="arr">JournalActionIA</span> tracé à chaque appel IA (§7.1 modificationManuelle + §7.3 auditabilité)</div>
+    <div><span class="arr">MessageChatbot</span> 0..1——1 CaptureVocale · ConversationChatbot 1——* MessageChatbot</div>
+    <div><span class="arr">CaptureVocale</span> requiert ConsentementVocal.accepte=true (§7.3 RGPD)</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════ VUE 6 : NOTIFICATIONS ═══════════════════════════════ -->
+<div class="view" id="v-notif">
+  <div class="col">
+    <div class="cls purple" style="width:240px">
+      <div class="cls-hd">Notification</div>
+      <div class="comp">
+        <div class="ab">↑ BaseEntity</div>
+        <div><span class="pub">+</span> utilisateurId: uuid FK</div>
+        <div><span class="pub">+</span> modeleId: uuid FK</div>
+        <div><span class="prv">-</span> titre: string</div>
+        <div><span class="prv">-</span> message: text</div>
+        <div><span class="pub">+</span> typeNotification: TypeNotification</div>
+        <div><span class="pub">+</span> canal: CanalNotification</div>
+        <div><span class="pub">+</span> statut: StatutNotification</div>
+        <div><span class="prv">-</span> envoyeeAt: datetime_immutable</div>
+        <div><span class="prv">-</span> lueAt: datetime_immutable</div>
+      </div>
+      <div class="comp">
+        <div class="fn"><span class="pub">+</span> marquerLue(): void</div>
+        <div class="fn"><span class="pub">+</span> renvoyer(): void</div>
+      </div>
+    </div>
+    <div class="cls gray" style="width:240px">
+      <div class="cls-hd"><small>«enumeration»</small>TypeNotification</div>
+      <div class="comp">
+        <div>RAPPEL_AVANT_SESSION</div>
+        <div>CHANGEMENT_PLANNING</div>
+        <div>RAPPEL_EVALUATION</div>
+        <div>ATTESTATION_DISPONIBLE</div>
+        <div>DOCUMENT_A_FOURNIR</div>
+        <div>SYSTEME</div>
+      </div>
+    </div>
+    <div class="cls gray" style="width:240px">
+      <div class="cls-hd"><small>«enumeration»</small>CanalNotification</div>
+      <div class="comp">
+        <div>EMAIL · MOBILE_PUSH</div>
+        <div>IN_APP · TEAMS</div>
+      </div>
+    </div>
+    <div class="cls gray" style="width:240px">
+      <div class="cls-hd"><small>«enumeration»</small>StatutNotification</div>
+      <div class="comp"><div>EN_ATTENTE · ENVOYEE · LUE · ECHEC</div></div>
+    </div>
+  </div>
+
+  <div class="col">
+    <div class="cls green" style="width:240px">
+      <div class="cls-hd">ModeleNotification</div>
+      <div class="comp">
+        <div class="ab">↑ BaseEntity</div>
+        <div><span class="pub">+</span> code: string</div>
+        <div><span class="prv">-</span> sujet: string</div>
+        <div><span class="prv">-</span> contenuTemplate: text</div>
+        <div><span class="pub">+</span> langueId: uuid FK→Langue</div>
+        <div><span class="pub">+</span> typeNotification: TypeNotification</div>
+        <div><span class="pub">+</span> actif: boolean</div>
+      </div>
+      <div class="comp">
+        <div class="fn"><span class="pub">+</span> apercu(): string</div>
+        <div class="fn"><span class="pub">+</span> dupliquer(): ModeleNotification</div>
+        <div class="fn"><span class="pub">+</span> rendrePour(ctx): string</div>
+      </div>
+    </div>
+    <div class="cls green" style="width:240px">
+      <div class="cls-hd">ConfigurationRappel</div>
+      <div class="comp">
+        <div class="ab">↑ BaseEntity</div>
+        <div><span class="pub">+</span> code: string</div>
+        <div><span class="pub">+</span> typeNotification: TypeNotification</div>
+        <div><span class="prv">-</span> nbJoursAvant: integer</div>
+        <div><span class="prv">-</span> nbHeuresAvant: integer</div>
+        <div><span class="pub">+</span> modeleId: uuid FK</div>
+        <div><span class="pub">+</span> actif: boolean</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="rel">
+    <h4>Relations — Notifications · cardinalités</h4>
+    <div><span class="arr">Utilisateur</span> 1——* Notification · Notification *——1 ModeleNotification</div>
+    <div><span class="arr">ConfigurationRappel</span> *——1 ModeleNotification · délais nbJoursAvant/nbHeuresAvant (§4.7)</div>
+    <div><span class="arr">ModeleNotification</span> *——1 Langue (attestations/notifs dans la langue choisie §4.10)</div>
+    <div><span class="arr">TacheAsynchrone</span> (RabbitMQ) gère l'envoi effectif des Notification (async §5.1)</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════ VUE 7 : AUDIT & RGPD ═══════════════════════════════ -->
+<div class="view" id="v-audit">
+  <div class="col">
+    <div class="cls coral" style="width:245px">
+      <div class="cls-hd">JournalAudit</div>
+      <div class="comp">
+        <div class="ab">↑ BaseEntity</div>
+        <div><span class="pub">+</span> utilisateurId: uuid FK</div>
+        <div><span class="prv">-</span> action: string</div>
+        <div><span class="prv">-</span> entite: string</div>
+        <div><span class="prv">-</span> entiteId: uuid</div>
+        <div><span class="prv">-</span> ancienneValeur: text</div>
+        <div><span class="prv">-</span> nouvelleValeur: text</div>
+        <div><span class="prv">-</span> ipAddress: string</div>
+        <div><span class="prv">-</span> userAgent: string</div>
+        <div><span class="prv">-</span> source: string (web|mobile|api)</div>
+        <div><span class="prv">-</span> dateAction: datetime_immutable</div>
+      </div>
+    </div>
+    <div class="cls coral" style="width:245px">
+      <div class="cls-hd">ConsentementVocal</div>
+      <div class="comp">
+        <div class="ab">↑ BaseEntity</div>
+        <div><span class="pub">+</span> utilisateurId: uuid FK</div>
+        <div><span class="pub">+</span> accepte: boolean</div>
+        <div><span class="prv">-</span> dateConsentement: datetime_immutable</div>
+        <div><span class="prv">-</span> source: string</div>
+        <div><span class="prv">-</span> preuve: string (hash)</div>
+        <div><span class="prv">-</span> versionLegal: string</div>
+        <div><span class="prv">-</span> dateRetrait: datetime_immutable</div>
+      </div>
+      <div class="comp">
+        <div class="fn"><span class="pub">+</span> accorder(): void</div>
+        <div class="fn"><span class="pub">+</span> retirer(): void</div>
+        <div class="fn"><span class="pub">+</span> estValide(): boolean</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col">
+    <div class="cls green" style="width:240px">
+      <div class="cls-hd">DemandeRGPD</div>
+      <div class="comp">
+        <div class="ab">↑ BaseEntity</div>
+        <div><span class="pub">+</span> utilisateurId: uuid FK</div>
+        <div><span class="pub">+</span> type: TypeDemandeRGPD</div>
+        <div><span class="pub">+</span> statut: StatutDemandeRGPD</div>
+        <div><span class="prv">-</span> demandeeAt: datetime_immutable</div>
+        <div><span class="prv">-</span> traiteeAt: datetime_immutable</div>
+        <div><span class="pub">+</span> traiteeParId: uuid FK</div>
+        <div><span class="prv">-</span> notes: text</div>
+      </div>
+      <div class="comp">
+        <div class="fn"><span class="pub">+</span> traiter(): void</div>
+        <div class="fn"><span class="pub">+</span> refuser(raison): void</div>
+      </div>
+    </div>
+    <div class="cls gray" style="width:240px">
+      <div class="cls-hd"><small>«enumeration»</small>TypeDemandeRGPD</div>
+      <div class="comp">
+        <div>ACCES · RECTIFICATION</div>
+        <div>SUPPRESSION · PORTABILITE</div>
+      </div>
+    </div>
+    <div class="cls gray" style="width:240px">
+      <div class="cls-hd"><small>«enumeration»</small>StatutDemandeRGPD</div>
+      <div class="comp"><div>EN_ATTENTE · EN_COURS · TRAITEE · REFUSEE</div></div>
+    </div>
+  </div>
+
+  <div class="rel">
+    <h4>Relations — Audit &amp; RGPD · cardinalités</h4>
+    <div><span class="arr">Utilisateur</span> 1——* JournalAudit · 1——1 ConsentementVocal · 1——* DemandeRGPD</div>
+    <div><span class="arr">JournalAudit</span> ≠ JournalActionIA : actions humaines vs actions IA (§7.3 auditabilité séparée)</div>
+    <div><span class="arr">ConsentementVocal.accepte=false</span> → CaptureVocale bloquée (§7.3 "consentement explicite")</div>
+    <div><span class="arr">DemandeRGPD</span> : droits accès / rectification / suppression / portabilité (§7.3 RGPD)</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════ VUE 8 : ASYNC & INFRA ═══════════════════════════════ -->
+<div class="view" id="v-async">
+  <div class="col">
+    <div class="cls blue" style="width:250px">
+      <div class="cls-hd">TacheAsynchrone</div>
+      <div class="comp">
+        <div class="ab">↑ BaseEntity</div>
+        <div><span class="pub">+</span> typeTache: string</div>
+        <div><span class="prv">-</span> payload: json</div>
+        <div><span class="pub">+</span> statut: StatutTache</div>
+        <div><span class="prv">-</span> datePlanification: datetime_immutable</div>
+        <div><span class="prv">-</span> dateExecution: datetime_immutable</div>
+        <div><span class="prv">-</span> nbTentatives: integer</div>
+        <div><span class="prv">-</span> maxTentatives: integer</div>
+        <div><span class="prv">-</span> erreur: text</div>
+        <div><span class="pub">+</span> declenchePar: uuid FK</div>
+      </div>
+      <div class="comp">
+        <div class="fn"><span class="pub">+</span> executer(): void</div>
+        <div class="fn"><span class="pub">+</span> annuler(): void</div>
+        <div class="fn"><span class="pub">+</span> reessayer(): void</div>
+        <div class="fn"><span class="pub">+</span> estEnEchec(): boolean</div>
+      </div>
+    </div>
+    <div class="cls gray" style="width:250px">
+      <div class="cls-hd"><small>«enumeration»</small>StatutTache</div>
+      <div class="comp">
+        <div>EN_ATTENTE · EN_COURS</div>
+        <div>TERMINEE · ECHEC</div>
+        <div>REPLANIFIEE · ANNULEE</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col">
+    <div class="cls green" style="width:245px">
+      <div class="cls-hd">Types de tâches async</div>
+      <div class="comp">
+        <div style="font-weight:700;color:#3B6D11;font-size:10px">typeTache (exemples)</div>
+        <div>SEND_NOTIFICATION</div>
+        <div>GEN_ATTESTATION</div>
+        <div>EXPORT_CSV / EXPORT_PDF</div>
+        <div>AI_SYNTHESE_EVALUATION</div>
+        <div>AI_TRANSCRIPTION_VOCALE</div>
+        <div>RAPPEL_SESSION</div>
+        <div>RAPPEL_EVALUATION</div>
+      </div>
+    </div>
+    <div class="cls green" style="width:245px">
+      <div class="cls-hd">Contraintes CDC §7</div>
+      <div class="comp">
+        <div style="font-weight:700;color:#3B6D11;font-size:10px">§7.1 — fallback IA</div>
+        <div>StatutTache=ECHEC + maxTentatives</div>
+        <div>→ système continue sans IA</div>
+        <div style="margin-top:5px;font-weight:700;color:#3B6D11;font-size:10px">§7.1 — override humain</div>
+        <div>JournalActionIA.modificationManuelle</div>
+        <div>SyntheseEvaluation.modifieManuellement</div>
+        <div style="margin-top:5px;font-weight:700;color:#3B6D11;font-size:10px">§7.2 — multi-support</div>
+        <div>CanalNotification: EMAIL/PUSH/TEAMS</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="rel">
+    <h4>Relations — Async &amp; Infra · cardinalités</h4>
+    <div><span class="arr">TacheAsynchrone</span> *——1 Utilisateur (declenchePar) — traçabilité complète</div>
+    <div><span class="arr">ExportRapport</span> 1——1 TacheAsynchrone · Notification 1——1 TacheAsynchrone · Attestation 1——1 TacheAsynchrone</div>
+    <div><span class="arr">StatutTache.REPLANIFIEE</span> = dead-letter queue RabbitMQ (retry après délai)</div>
+    <div><span class="arr">StatutTache.ANNULEE</span> = tâche explicitement stoppée avant exécution</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════ VUE 9 : SERVICES ═══════════════════════════════ -->
+<div class="view" id="v-services">
+  <div class="col">
+    <div class="cls blue" style="width:250px">
+      <div class="cls-hd"><span class="stereo">«service»</span>FormationService</div>
+      <div class="comp">
+        <div class="fn"><span class="pub">+</span> creerFormation(dto): Formation</div>
+        <div class="fn"><span class="pub">+</span> archiverFormation(id): void</div>
+        <div class="fn"><span class="pub">+</span> dupliquerFormation(id): Formation</div>
+        <div class="fn"><span class="pub">+</span> rechercherFormations(filtres): Formation[]</div>
+      </div>
+    </div>
+    <div class="cls blue" style="width:250px">
+      <div class="cls-hd"><span class="stereo">«service»</span>SessionService</div>
+      <div class="comp">
+        <div class="fn"><span class="pub">+</span> planifierSession(dto): SessionFormation</div>
+        <div class="fn"><span class="pub">+</span> genererPlanning(id): PlanningJour[]</div>
+        <div class="fn"><span class="pub">+</span> inscrireParticipant(sId, pId): Inscription</div>
+        <div class="fn"><span class="pub">+</span> validerPresences(planningJourId): void</div>
+        <div class="fn"><span class="pub">+</span> annulerSession(id, raison): void</div>
+      </div>
+    </div>
+    <div class="cls blue" style="width:250px">
+      <div class="cls-hd"><span class="stereo">«service»</span>SalleService</div>
+      <div class="comp">
+        <div class="fn"><span class="pub">+</span> verifierDisponibilite(salleId, debut, fin): boolean</div>
+        <div class="fn"><span class="pub">+</span> reserverSalle(dto): ReservationSalle</div>
+        <div class="fn"><span class="pub">+</span> detecterConflits(sessionId): string[]</div>
+        <div class="fn"><span class="pub">+</span> syncAvecCOSAP(): void</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col">
+    <div class="cls blue" style="width:250px">
+      <div class="cls-hd"><span class="stereo">«service»</span>FinanceService</div>
+      <div class="comp">
+        <div class="fn"><span class="pub">+</span> calculerBudget(sessionId): BudgetSession</div>
+        <div class="fn"><span class="pub">+</span> saisirDepense(dto): Depense</div>
+        <div class="fn"><span class="pub">+</span> genererFacture(sessionId): FactureClient</div>
+        <div class="fn"><span class="pub">+</span> calculerMarge(sessionId): decimal</div>
+        <div class="fn"><span class="pub">+</span> exporterRapport(filtres, type): ExportRapport</div>
+      </div>
+    </div>
+    <div class="cls blue" style="width:250px">
+      <div class="cls-hd"><span class="stereo">«service»</span>EvaluationService</div>
+      <div class="comp">
+        <div class="fn"><span class="pub">+</span> soumettreEvaluation(dto): EvaluationSession</div>
+        <div class="fn"><span class="pub">+</span> calculerSynthese(sessionId): SyntheseEvaluation</div>
+        <div class="fn"><span class="pub">+</span> lancerAnalyseIA(sessionId): void</div>
+        <div class="fn"><span class="pub">+</span> getTauxReponse(sessionId): decimal</div>
+      </div>
+    </div>
+    <div class="cls blue" style="width:250px">
+      <div class="cls-hd"><span class="stereo">«service»</span>AttestationService</div>
+      <div class="comp">
+        <div class="fn"><span class="pub">+</span> genererAttestation(inscriptionId): Attestation</div>
+        <div class="fn"><span class="pub">+</span> envoyerAttestation(id): void</div>
+        <div class="fn"><span class="pub">+</span> revoquerAttestation(id): void</div>
+        <div class="fn"><span class="pub">+</span> telecharger(id): string</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col">
+    <div class="cls blue" style="width:250px">
+      <div class="cls-hd"><span class="stereo">«service»</span>NotificationService</div>
+      <div class="comp">
+        <div class="fn"><span class="pub">+</span> envoyerNotification(dto): Notification</div>
+        <div class="fn"><span class="pub">+</span> planifierRappels(sessionId): void</div>
+        <div class="fn"><span class="pub">+</span> rendrePourLangue(modeleId, lang, ctx): string</div>
+        <div class="fn"><span class="pub">+</span> getHistorique(userId): Notification[]</div>
+      </div>
+    </div>
+    <div class="cls blue" style="width:250px">
+      <div class="cls-hd"><span class="stereo">«service»</span>IAService</div>
+      <div class="comp">
+        <div class="fn"><span class="pub">+</span> analyserEvaluations(sessionId): SyntheseEvaluation</div>
+        <div class="fn"><span class="pub">+</span> transcrirerAudio(captureId): string</div>
+        <div class="fn"><span class="pub">+</span> repondreChat(conv, msg): string</div>
+        <div class="fn"><span class="pub">+</span> estDisponible(): boolean</div>
+        <div class="fn"><span class="pub">+</span> loggerAction(dto): JournalActionIA</div>
+      </div>
+    </div>
+    <div class="cls blue" style="width:250px">
+      <div class="cls-hd"><span class="stereo">«service»</span>RGPDService</div>
+      <div class="comp">
+        <div class="fn"><span class="pub">+</span> creerDemande(userId, type): DemandeRGPD</div>
+        <div class="fn"><span class="pub">+</span> exporterDonnees(userId): json</div>
+        <div class="fn"><span class="pub">+</span> supprimerDonnees(userId): void</div>
+        <div class="fn"><span class="pub">+</span> verifierConsentementVocal(userId): boolean</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="rel">
+    <h4>Services Symfony — dépendances principales</h4>
+    <div><span class="arr">IAService.estDisponible()</span> → fallback gracieux si IA indisponible (§7.1)</div>
+    <div><span class="arr">NotificationService</span> publie dans TacheAsynchrone (RabbitMQ) pour envoi async</div>
+    <div><span class="arr">SalleService.syncAvecCOSAP()</span> → intégration API COSAP temps réel (§7.2)</div>
+    <div><span class="arr">RGPDService.supprimerDonnees()</span> → cascade anonymisation conforme RGPD (§7.3)</div>
+    <div><span class="arr">EvaluationService.lancerAnalyseIA()</span> → délègue à IAService (Ollama/Mistral/LLaMA2)</div>
+  </div>
+</div>
+
+</div>
+<script>
+function show(id, btn) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('v-' + id).classList.add('active');
+  btn.classList.add('active');
+}
+</script>
