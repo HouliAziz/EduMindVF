@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Search, Download, Eye, Loader2 } from 'lucide-react'
-import { participantsAPI } from '../../services/api'
+import api, { participantsAPI } from '../../services/api'
 import './Documents.css'
 
 const FILTERS = ['Tous', 'SUPPORT', 'CONVOCATION', 'ATTESTATION']
@@ -131,9 +131,23 @@ export default function Documents() {
                                         <td className="doc-taille">{formatTaille(doc.tailleBits)}</td>
                                         <td>
                                             <div className="doc-actions">
-                                                <a href={`/api/v1/documents/${doc.id}`} className="doc-action-btn" title="Télécharger" target="_blank" rel="noreferrer">
+                                                <button className="doc-action-btn doc-download-btn" title="Télécharger" onClick={async () => {
+                                                    try {
+                                                        const res = await api.get(`/documents/${doc.id}`, { responseType: 'blob' })
+                                                        const url = URL.createObjectURL(res.data)
+                                                        const a = document.createElement('a')
+                                                        a.href = url
+                                                        a.download = doc.nomFichier
+                                                        document.body.appendChild(a)
+                                                        a.click()
+                                                        document.body.removeChild(a)
+                                                        URL.revokeObjectURL(url)
+                                                    } catch (err) {
+                                                        console.error('Download failed:', err)
+                                                    }
+                                                }}>
                                                     <Download size={16} />
-                                                </a>
+                                                </button>
                                             </div>
                                         </td>
                                     </tr>

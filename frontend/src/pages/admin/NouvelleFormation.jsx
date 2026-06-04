@@ -48,10 +48,7 @@ export default function NouvelleFormation({ formationToEdit, onBack, onToast }) 
   const [salle, setSalle] = useState('')
   const [selectedEquipements, setSelectedEquipements] = useState(['Vidéoprojecteur', 'Connexion Wi-Fi dédiée'])
 
-  const LOGISTICS_ITEMS = ['Pause café', 'Restauration', 'Logement', 'Transport', 'Location des salles', 'Autre']
-  const [logisticsItems, setLogisticsItems] = useState(
-    Object.fromEntries(LOGISTICS_ITEMS.map(item => [item, { checked: false, montant: 0 }]))
-  )
+
 
   const [pendingFiles, setPendingFiles] = useState([])
   const [dragActive, setDragActive] = useState(false)
@@ -87,15 +84,6 @@ export default function NouvelleFormation({ formationToEdit, onBack, onToast }) 
         })
         setSalle(f.lieu || '')
         if (f.equipements) setSelectedEquipements(f.equipements)
-        if (f.logistics) {
-          setLogisticsItems(prev => {
-            const next = { ...prev }
-            Object.entries(f.logistics).forEach(([k, v]) => {
-              if (next[k]) next[k] = { checked: true, montant: v }
-            })
-            return next
-          })
-        }
         if (f.documents) {
           setPendingFiles(f.documents.map(d => ({ ...d, name: d.nomFichier, uploaded: true, id: d.id })))
         }
@@ -261,7 +249,6 @@ export default function NouvelleFormation({ formationToEdit, onBack, onToast }) 
         modeSession: 'SUR_SITE',
         lieu: salle,
         equipements: selectedEquipements,
-        logistics: Object.fromEntries(Object.entries(logisticsItems).filter(([_, v]) => v.checked).map(([k, v]) => [k, v.montant])),
         budgetAlloue: form.budgetAlloue || null,
         prixParticipant: form.prixParticipant || null,
         statut: formationToEdit?.statut || 'EN_ATTENTE',
@@ -496,57 +483,6 @@ export default function NouvelleFormation({ formationToEdit, onBack, onToast }) 
                 </div>
               </div>
 
-              <div className="field-group" style={{ marginTop: '8px' }}>
-                <label>Services & Prestations</label>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginTop: '4px' }}>
-                  {LOGISTICS_ITEMS.map(item => {
-                    const li = logisticsItems[item]
-                    return (
-                      <div key={item} onClick={() => {
-                        setLogisticsItems(prev => ({
-                          ...prev,
-                          [item]: { ...prev[item], checked: !prev[item].checked }
-                        }))
-                      }}
-                        style={{
-                          display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 12px',
-                          borderRadius: '8px', border: li.checked ? '1.5px solid var(--navy)' : '1.5px solid var(--gray-200)',
-                          background: li.checked ? '#f0f4ff' : '#fff', cursor: 'pointer',
-                          transition: 'all 0.15s',
-                        }}>
-                        <div style={{
-                          width: '18px', height: '18px', borderRadius: '4px', flexShrink: 0,
-                          border: li.checked ? 'none' : '2px solid var(--gray-300)',
-                          background: li.checked ? 'var(--navy)' : 'transparent',
-                          display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        }}>
-                          {li.checked && <Check size={12} color="#fff" />}
-                        </div>
-                        <span style={{ flex: 1, fontSize: '13px', fontWeight: li.checked ? 600 : 400, color: li.checked ? 'var(--navy)' : 'var(--gray-700)' }}>
-                          {item}
-                        </span>
-                        {li.checked && (
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }} onClick={e => e.stopPropagation()}>
-                            <input type="number" placeholder="0" min="0"
-                              value={li.montant || ''}
-                              onChange={e => {
-                                setLogisticsItems(prev => ({
-                                  ...prev,
-                                  [item]: { ...prev[item], montant: +e.target.value || 0 }
-                                }))
-                              }}
-                              style={{
-                                width: '90px', padding: '5px 8px', border: '1.5px solid var(--gray-200)',
-                                borderRadius: '6px', fontSize: '13px', textAlign: 'right',
-                              }} />
-                            <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--gray-500)', minWidth: '14px' }}>€</span>
-                          </div>
-                        )}
-                      </div>
-                    )
-                  })}
-                </div>
-              </div>
             </div>
           )}
 
@@ -615,7 +551,6 @@ export default function NouvelleFormation({ formationToEdit, onBack, onToast }) 
                 <div className="recap-row"><span>Participants</span><strong>{selectedParticipants.length} inscrits</strong></div>
                 <div className="recap-row"><span>Lieu</span><strong>{salle || 'Non spécifié'}</strong></div>
                 <div className="recap-row"><span>Équipements</span><strong>{selectedEquipements.join(', ') || 'Aucun'}</strong></div>
-                <div className="recap-row"><span>Services</span><strong>{Object.entries(logisticsItems).filter(([_, v]) => v.checked).map(([k, v]) => `${k} (${v.montant}€)`).join(', ') || 'Aucun'}</strong></div>
                 <div className="recap-row"><span>Documents</span><strong>{pendingFiles.filter(f => f.uploaded || f.file).length} fichier(s)</strong></div>
               </div>
             </div>
