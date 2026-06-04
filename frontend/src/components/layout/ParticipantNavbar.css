@@ -158,3 +158,8 @@
 .p-user-chevron { color: var(--gray-400); }
 
 .p-logout-btn { margin-left: 4px; }
+
+.p-logout-btn:hover {
+    background: var(--danger-bg) !important;
+    color: var(--danger) !important;
+}

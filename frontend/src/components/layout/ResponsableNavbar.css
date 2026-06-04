@@ -53,18 +53,12 @@
     display: flex;
     align-items: center;
     flex: 1;
-    gap: 1px;
-    overflow-x: auto;
-    scrollbar-width: none;
-}
-
-.rn-links::-webkit-scrollbar {
-    display: none;
+    gap: 2px;
 }
 
 .rn-link {
-    padding: 6px 11px;
-    font-size: 12.5px;
+    padding: 6px 14px;
+    font-size: 13.5px;
     font-weight: 500;
     font-family: var(--font-display);
     color: var(--gray-500);
@@ -89,9 +83,9 @@
 .rn-link.active::after {
     content: '';
     position: absolute;
-    bottom: -17px;
-    left: 11px;
-    right: 11px;
+    bottom: -19px;
+    left: 14px;
+    right: 14px;
     height: 2px;
     background: var(--orange);
     border-radius: 2px 2px 0 0;
@@ -124,6 +118,11 @@
 .rn-icon-btn:hover {
     background: var(--gray-100);
     color: var(--gray-700);
+}
+
+.rn-logout-btn:hover {
+    background: var(--danger-bg) !important;
+    color: var(--danger) !important;
 }
 
 .rn-notif-dot {

@@ -171,6 +171,7 @@ function AppRoutes() {
         <Route path="documents" element={<Documents />} />
         <Route path="attestations" element={<Attestations />} />
         <Route path="evaluations" element={<Evaluation />} />
+        <Route path="profile" element={<Profile />} />
       </Route>
 
       {/* ── Formateur ── */}
@@ -181,6 +182,7 @@ function AppRoutes() {
         <Route path="apprenants" element={<MesApprenants />} />
         <Route path="ressources" element={<ComingSoon name="Ressources" />} />
         <Route path="evaluations" element={<EvaluationsFormateur />} />
+        <Route path="profile" element={<Profile />} />
       </Route>
 
       {/* ── Responsable Formation ── */}
@@ -195,6 +197,7 @@ function AppRoutes() {
         <Route path="demandes" element={<GestionDemandes />} />
         <Route path="ia" element={<AnalyseIA />} />
         <Route path="notifications" element={<ComingSoon name="Notifications" />} />
+        <Route path="profile" element={<Profile />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/login" replace />} />

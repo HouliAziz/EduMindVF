@@ -1,5 +1,5 @@
 import { NavLink, useNavigate } from 'react-router-dom'
-import { Bell, Settings, LogOut, ChevronDown } from 'lucide-react'
+import { Bell, LogOut } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import './FormateurNavbar.css'
 
@@ -23,7 +23,6 @@ export default function FormateurNavbar() {
     return (
         <header className="fn-navbar">
             <div className="fn-inner">
-                {/* Logo */}
                 <div className="fn-logo">
                     <img src="/src/assets/logo-brain.png" alt="EduMind" className="fn-logo-img" />
                     <div className="fn-logo-text">
@@ -32,7 +31,6 @@ export default function FormateurNavbar() {
                     </div>
                 </div>
 
-                {/* Nav links */}
                 <nav className="fn-links">
                     {navLinks.map(({ label, to }) => (
                         <NavLink
@@ -45,21 +43,16 @@ export default function FormateurNavbar() {
                     ))}
                 </nav>
 
-                {/* Right */}
                 <div className="fn-right">
                     <button className="fn-icon-btn" title="Notifications">
                         <Bell size={18} />
                         <span className="fn-notif-dot" />
                     </button>
-                    <button className="fn-icon-btn" title="Paramètres">
-                        <Settings size={18} />
-                    </button>
-                    <div className="fn-user">
+                    <div className="fn-user" onClick={() => navigate('/formateur/profile')}>
                         <div className="fn-avatar">{initials}</div>
                         <span className="fn-username">{user?.prenom ?? 'Formateur'}</span>
-                        <ChevronDown size={13} />
                     </div>
-                    <button className="fn-icon-btn" onClick={handleLogout} title="Déconnexion">
+                    <button className="fn-icon-btn fn-logout-btn" onClick={handleLogout} title="Déconnexion">
                         <LogOut size={16} />
                     </button>
                 </div>

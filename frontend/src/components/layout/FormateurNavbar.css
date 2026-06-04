@@ -116,6 +116,11 @@
     color: var(--gray-700);
 }
 
+.fn-logout-btn:hover {
+    background: var(--danger-bg) !important;
+    color: var(--danger) !important;
+}
+
 .fn-notif-dot {
     position: absolute;
     top: 6px;
