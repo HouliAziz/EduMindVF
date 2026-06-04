@@ -81,7 +81,7 @@
 .fn-link.active::after {
     content: '';
     position: absolute;
-    bottom: -19px;
+    bottom: -14px;
     left: 14px;
     right: 14px;
     height: 2px;

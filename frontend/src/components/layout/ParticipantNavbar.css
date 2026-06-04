@@ -76,14 +76,14 @@
 }
 
 .p-nav-link.active::after {
-  content: '';
-  position: absolute;
-  bottom: -18px;
-  left: 14px;
-  right: 14px;
-  height: 2px;
-  background: var(--orange);
-  border-radius: 2px 2px 0 0;
+    content: '';
+    position: absolute;
+    bottom: -14px;
+    left: 14px;
+    right: 14px;
+    height: 2px;
+    background: var(--orange);
+    border-radius: 2px 2px 0 0;
 }
 
 .p-navbar-right {

@@ -33,11 +33,12 @@ export default function ParticipantPlanning() {
 
   useEffect(() => {
     setLoading(true)
-    participantsAPI.planning()
+    const ws = weekStart.toISOString().slice(0, 10)
+    participantsAPI.planning(ws)
       .then(({ data: res }) => setData(res))
       .catch(err => console.error('Planning API error:', err))
       .finally(() => setLoading(false))
-  }, [])
+  }, [weekOffset])
 
   const today = new Date()
   const weekStart = getMonday(today)
@@ -65,7 +66,6 @@ export default function ParticipantPlanning() {
 
   return (
     <div className="planning">
-      {/* Header */}
       <div className="planning-header">
         <div>
           <h1>Bonjour, {data?.prenom || 'Participant'} 👋</h1>
@@ -77,7 +77,7 @@ export default function ParticipantPlanning() {
           </button>
           <span className="week-label">
             <Calendar size={14} />
-            Semaine {weekOffset + 1}
+            {formatWeekRange(weekStart)}
           </span>
           <button className="week-btn" onClick={() => setWeekOffset(v => v + 1)}>
             <ChevronRight size={16} />
@@ -86,7 +86,6 @@ export default function ParticipantPlanning() {
       </div>
 
       <div className="planning-body">
-        {/* Calendar */}
         <div className="card calendar-card">
           <div className="cal-header">
             <div className="cal-time-gutter" />
@@ -110,25 +109,20 @@ export default function ParticipantPlanning() {
 
             {weekDates.map((d, dayIdx) => {
               const isToday = d.toDateString() === today.toDateString()
-              const dayEvents = events.filter(e => {
-                const ed = new Date(e.date)
-                return ed.toDateString() === d.toDateString()
-              })
+              const dayEvents = events.filter(e => e.dayIndex === dayIdx)
               return (
                 <div key={dayIdx} className={`cal-col ${isToday ? 'today-col' : ''}`}>
                   {HOURS.map((_, hi) => (
                     <div key={hi} className="cal-hour-row" />
                   ))}
                   {dayEvents.map(ev => {
-                    const startH = parseInt(ev.heureDebut?.split(':')[0] || '9')
-                    const endH = parseInt(ev.heureFin?.split(':')[0] || '17')
-                    const duration = endH - startH
-                    const topPx = (startH - 9) * HOUR_HEIGHT
+                    const duration = Math.max(ev.duration, 0.5)
+                    const topPx = (ev.startHour - 9) * HOUR_HEIGHT
                     const heightPx = duration * HOUR_HEIGHT - 4
                     return (
-                      <div key={ev.id} className="cal-event cal-event-navy" style={{ top: topPx, height: heightPx }}>
-                        <span className="cal-event-title">{ev.titre}</span>
-                        <span className="cal-event-sub">{ev.formateur || ev.lieu || ''}</span>
+                      <div key={ev.id} className={`cal-event cal-event-${ev.color}`} style={{ top: topPx, height: heightPx }}>
+                        <span className="cal-event-title">{ev.title}</span>
+                        <span className="cal-event-sub">{ev.subtitle}</span>
                       </div>
                     )
                   })}
@@ -138,14 +132,12 @@ export default function ParticipantPlanning() {
           </div>
         </div>
 
-        {/* Right panel */}
         <div className="planning-side">
-          {/* Spotlight */}
           {spotlight && (
             <div className="card spotlight-card">
               <div className="spotlight-badge">SPOTLIGHT</div>
               <div className="spotlight-sub">Prochaine Session</div>
-              <h3 className="spotlight-title">{spotlight.titre}</h3>
+              <h3 className="spotlight-title">{spotlight.title}</h3>
 
               <div className="spotlight-meta">
                 <div className="meta-row">
@@ -154,7 +146,7 @@ export default function ParticipantPlanning() {
                 </div>
                 <div className="meta-row">
                   <Clock size={14} />
-                  <span>{spotlight.heureDebut} — {spotlight.heureFin}</span>
+                  <span>{spotlight.time}</span>
                 </div>
                 <div className="meta-row">
                   <MapPin size={14} />
@@ -183,7 +175,6 @@ export default function ParticipantPlanning() {
             </div>
           )}
 
-          {/* Upcoming */}
           <div className="card upcoming-card">
             <div className="upcoming-header">
               <h4>À venir</h4>
@@ -196,12 +187,12 @@ export default function ParticipantPlanning() {
                 upcoming.slice(0, 3).map((item, i) => (
                   <div key={i} className="upcoming-item">
                     <div className="upcoming-date">
-                      <span className="upcoming-day">{item.day}</span>
+                      <span className="upcoming-day">{item.date}</span>
                       <span className="upcoming-month">{item.month}</span>
                     </div>
                     <div className="upcoming-info">
-                      <span className="upcoming-title">{item.titre}</span>
-                      <span className="upcoming-time">{item.heureDebut} — {item.lieu || ''}</span>
+                      <span className="upcoming-title">{item.title}</span>
+                      <span className="upcoming-time">{item.time}</span>
                     </div>
                     <Arrow size={14} className="upcoming-arrow" />
                   </div>
@@ -210,7 +201,6 @@ export default function ParticipantPlanning() {
             </div>
           </div>
 
-          {/* Objective */}
           {objective && (
             <div className="card objective-card">
               <div className="objective-inner">
@@ -218,13 +208,13 @@ export default function ParticipantPlanning() {
                   <Target size={18} />
                 </div>
                 <div>
-                  <div className="obj-title">{objective.titre || 'Objectif atteint !'}</div>
-                  <div className="obj-sub">{objective.description}</div>
+                  <div className="obj-title">Progression</div>
+                  <div className="obj-sub">{objective.completedFormations}/{objective.totalFormations} formations terminées</div>
                 </div>
               </div>
               <div className="obj-peers">
                 <Users size={13} />
-                <span>{objective.label || 'Bravo avec vos pairs'}</span>
+                <span>{objective.completedPct}% complété</span>
               </div>
             </div>
           )}

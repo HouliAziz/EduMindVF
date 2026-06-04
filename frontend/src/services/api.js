@@ -72,8 +72,9 @@ export const sessionsAPI = {
 export const participantsAPI = {
   eligible: (typeFormation) => api.get(`/participants/eligible?typeFormation=${typeFormation}`),
   byFormation: (id) => api.get(`/participants/formation/${id}`),
-  planning: () => api.get('/participant/planning'),
+  planning: (weekStart) => api.get(`/participant/planning?weekStart=${weekStart}`),
   mesFormations: () => api.get('/participant/formations'),
+  documents: () => api.get('/participant/documents'),
 }
 
 // ─── Inscriptions ─────────────────────────────────────────────────────────────

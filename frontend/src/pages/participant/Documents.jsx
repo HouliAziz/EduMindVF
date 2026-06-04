@@ -1,46 +1,77 @@
-import { useState } from 'react'
-import { Search, RefreshCw, Download, Eye, ChevronLeft, ChevronRight } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Search, Download, Eye, Loader2 } from 'lucide-react'
+import { participantsAPI } from '../../services/api'
 import './Documents.css'
 
-const DOCS = [
-    { id: 1, nom: 'Support_Cours_Management_V2.pdf', type: 'pdf', categorie: 'Supports', formation: 'Management Stratégique', date: '14 Mars 2024', taille: '4.2 MB' },
-    { id: 2, nom: 'Convocation_Session_Avril.docx', type: 'docx', categorie: 'Convocations', formation: 'Management Stratégique', date: '10 Mars 2024', taille: '128 KB' },
-    { id: 3, nom: 'Presentation_Transformation_Digitale.pptx', type: 'pptx', categorie: 'Supports', formation: 'IA et Business', date: '05 Mars 2024', taille: '12.5 MB' },
-    { id: 4, nom: 'Attestation_Fin_Formation_2023.pdf', type: 'pdf', categorie: 'Attestations', formation: 'Soft Skills Mastery', date: '20 Jan 2024', taille: '850 KB' },
-]
+const FILTERS = ['Tous', 'SUPPORT', 'CONVOCATION', 'ATTESTATION']
 
-const FILTERS = ['Tous', 'Supports', 'Convocations', 'Attestations']
+const MIME_ICONS = {
+    'application/pdf': { short: 'PDF', color: '#ef4444' },
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document': { short: 'DOC', color: '#3b82f6' },
+    'application/vnd.openxmlformats-officedocument.presentationml.presentation': { short: 'PPT', color: '#f59e0b' },
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': { short: 'XLS', color: '#10b981' },
+}
 
-const FILE_COLORS = { pdf: '#ef4444', docx: '#3b82f6', pptx: '#f59e0b', xlsx: '#10b981' }
-const FILE_ICONS = { pdf: 'PDF', docx: 'DOC', pptx: 'PPT', xlsx: 'XLS' }
+function getFileInfo(mimeType) {
+    return MIME_ICONS[mimeType] || { short: 'FILE', color: '#6b7591' }
+}
+
+function formatTaille(bits) {
+    if (!bits) return '—'
+    const bytes = parseInt(bits)
+    if (bytes < 1024) return `${bytes} B`
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
+}
+
+function formatDate(str) {
+    if (!str) return '—'
+    const d = new Date(str)
+    return d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })
+}
+
+const FILTER_LABELS = { 'Tous': 'Tous', 'SUPPORT': 'Supports', 'CONVOCATION': 'Convocations', 'ATTESTATION': 'Attestations' }
 
 export default function Documents() {
     const [search, setSearch] = useState('')
     const [filter, setFilter] = useState('Tous')
+    const [docs, setDocs] = useState([])
+    const [loading, setLoading] = useState(true)
 
-    const filtered = DOCS.filter(d =>
-        (filter === 'Tous' || d.categorie === filter) &&
-        d.nom.toLowerCase().includes(search.toLowerCase())
-    )
+    useEffect(() => {
+        participantsAPI.documents()
+            .then(({ data }) => setDocs(data || []))
+            .catch(err => console.error('Documents API error:', err))
+            .finally(() => setLoading(false))
+    }, [])
+
+    const filtered = docs.filter(d => {
+        const matchFilter = filter === 'Tous' || d.typeDocument === filter
+        const matchSearch = d.nomFichier?.toLowerCase().includes(search.toLowerCase()) ||
+            (d.formation?.toLowerCase() || '').includes(search.toLowerCase())
+        return matchFilter && matchSearch
+    })
+
+    if (loading) {
+        return (
+            <div className="documents-page" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '300px', gap: '10px', color: 'var(--gray-400)' }}>
+                <Loader2 size={24} className="spin" />
+                <span>Chargement...</span>
+            </div>
+        )
+    }
 
     return (
         <div className="documents-page">
-            {/* Breadcrumb */}
-            <div className="breadcrumb">Ressources &rsaquo; <span>Mes Documents</span></div>
+            <div className="breadcrumb">Ressources › <span>Mes Documents</span></div>
 
-            {/* Header */}
             <div className="docs-header">
                 <div>
                     <h1>Mes Documents</h1>
                     <p>Consultez et téléchargez vos supports de cours et documents administratifs.</p>
                 </div>
-                <div className="docs-header-actions">
-                    <button className="btn btn-ghost"><RefreshCw size={14} /> Actualiser</button>
-                    <button className="btn btn-navy"><Download size={14} /> Tout télécharger</button>
-                </div>
             </div>
 
-            {/* Search + filters */}
             <div className="docs-toolbar card">
                 <div className="docs-search">
                     <Search size={14} />
@@ -58,13 +89,12 @@ export default function Documents() {
                             className={`filter-chip ${filter === f ? 'active' : ''}`}
                             onClick={() => setFilter(f)}
                         >
-                            {f}
+                            {FILTER_LABELS[f]}
                         </button>
                     ))}
                 </div>
             </div>
 
-            {/* Table */}
             <div className="card docs-table-card">
                 <table className="docs-table">
                     <thead>
@@ -79,44 +109,42 @@ export default function Documents() {
                     <tbody>
                         {filtered.length === 0
                             ? <tr><td colSpan={5} className="docs-empty">Aucun document trouvé</td></tr>
-                            : filtered.map(doc => (
-                                <tr key={doc.id}>
-                                    <td>
-                                        <div className="doc-name-cell">
-                                            <div className="file-icon" style={{ background: FILE_COLORS[doc.type] }}>
-                                                {FILE_ICONS[doc.type]}
+                            : filtered.map(doc => {
+                                const info = getFileInfo(doc.mimeType)
+                                return (
+                                    <tr key={doc.id}>
+                                        <td>
+                                            <div className="doc-name-cell">
+                                                <div className="file-icon" style={{ background: info.color }}>
+                                                    {info.short}
+                                                </div>
+                                                <div>
+                                                    <div className="doc-filename">{doc.nomFichier}</div>
+                                                    <div className="doc-categorie">{doc.typeDocument}</div>
+                                                </div>
                                             </div>
-                                            <div>
-                                                <div className="doc-filename">{doc.nom}</div>
-                                                <div className="doc-categorie">{doc.categorie}</div>
+                                        </td>
+                                        <td>
+                                            <span className="formation-pill">{doc.formation || '—'}</span>
+                                        </td>
+                                        <td className="doc-date">{formatDate(doc.dateUpload)}</td>
+                                        <td className="doc-taille">{formatTaille(doc.tailleBits)}</td>
+                                        <td>
+                                            <div className="doc-actions">
+                                                <a href={`/api/v1/documents/${doc.id}`} className="doc-action-btn" title="Télécharger" target="_blank" rel="noreferrer">
+                                                    <Download size={16} />
+                                                </a>
                                             </div>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <span className="formation-pill">{doc.formation}</span>
-                                    </td>
-                                    <td className="doc-date">{doc.date}</td>
-                                    <td className="doc-taille">{doc.taille}</td>
-                                    <td>
-                                        <div className="doc-actions">
-                                            <button className="doc-action-btn" title="Aperçu"><Eye size={16} /></button>
-                                            <button className="doc-action-btn doc-download-btn" title="Télécharger"><Download size={16} /></button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            ))
+                                        </td>
+                                    </tr>
+                                )
+                            })
                         }
                     </tbody>
                 </table>
 
-                {/* Pagination */}
                 <div className="docs-pagination">
-                    <span>Affichage de {filtered.length} sur {DOCS.length} documents</span>
-                    <div className="pagination-btns">
-                        <button className="page-icon-btn" disabled><ChevronLeft size={15} /></button>
-                        <button className="page-btn active">1</button>
-                        <button className="page-icon-btn"><ChevronRight size={15} /></button>
-                    </div>
+                    <span>Affichage de {filtered.length} sur {docs.length} document{docs.length > 1 ? 's' : ''}</span>
                 </div>
             </div>
         </div>
