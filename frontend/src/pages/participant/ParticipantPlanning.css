@@ -202,13 +202,6 @@
   white-space: nowrap;
 }
 
-/* Event colors */
-.cal-event-navy        { background: #dde5f6; color: var(--navy); }
-.cal-event-teal        { background: #d4f0e8; color: #0f6e56; }
-.cal-event-orange      { background: var(--orange-light); color: var(--orange-dark); }
-.cal-event-gray        { background: var(--gray-100); color: var(--gray-600); }
-.cal-event-navy.highlighted { background: var(--navy); color: var(--white); }
-
 /* ── Right side panel ── */
 .planning-side {
   display: flex;

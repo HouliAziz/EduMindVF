@@ -120,7 +120,7 @@ export default function ParticipantPlanning() {
                     const topPx = (ev.startHour - 9) * HOUR_HEIGHT
                     const heightPx = duration * HOUR_HEIGHT - 4
                     return (
-                      <div key={ev.id} className={`cal-event cal-event-${ev.color}`} style={{ top: topPx, height: heightPx }}>
+                      <div key={ev.id} className="cal-event" style={{ top: topPx, height: heightPx, background: ev.bgColor, color: ev.textColor }}>
                         <span className="cal-event-title">{ev.title}</span>
                         <span className="cal-event-sub">{ev.subtitle}</span>
                       </div>

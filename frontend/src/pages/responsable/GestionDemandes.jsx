@@ -96,6 +96,24 @@ export default function GestionDemandes() {
         }
     }
 
+    const handleReconsider = async (id) => {
+        if (busyRef.current) return
+        busyRef.current = id
+        setActionLoading(id)
+        try {
+            await formationsAPI.reconsider(id)
+            setFormations(prev => prev.map(x => x.id === id ? { ...x, statut: 'EN_ATTENTE' } : x))
+            showToast('Formation remise en attente.', 'success')
+        } catch (err) {
+            const msg = err?.response?.data?.error || 'Erreur lors du retour en attente.'
+            showToast(msg, 'error')
+            fetchFormations()
+        } finally {
+            setActionLoading(null)
+            busyRef.current = null
+        }
+    }
+
     const handleDelete = async () => {
         const id = deleteTarget
         if (!id) return
@@ -123,10 +141,12 @@ export default function GestionDemandes() {
         e.preventDefault()
         if (busyRef.current) return
         const f = dragItem.current
-        if (!f || f.statut !== 'EN_ATTENTE') return
+        if (!f) return
         dragItem.current = null
-        if (targetStatus === 'ACTIVE') handleApprove(f.id)
-        else if (targetStatus === 'REJETEE') handleReject(f.id)
+        if (f.statut === 'EN_ATTENTE' && targetStatus === 'ACTIVE') handleApprove(f.id)
+        else if (f.statut === 'EN_ATTENTE' && targetStatus === 'REJETEE') handleReject(f.id)
+        else if (f.statut === 'REJETEE' && targetStatus === 'EN_ATTENTE') handleReconsider(f.id)
+        else if (f.statut === 'REJETEE' && targetStatus === 'ACTIVE') handleApprove(f.id)
     }
 
     const pendingCount = formations.filter(f => f.statut === 'EN_ATTENTE').length
@@ -224,7 +244,7 @@ export default function GestionDemandes() {
                                                 f={f}
                                                 colKey={col.key}
                                                 isBusy={actionLoading === f.id}
-                                                onDragStart={f.statut === 'EN_ATTENTE' && actionLoading !== f.id ? handleDragStart : null}
+                                                onDragStart={(f.statut === 'EN_ATTENTE' || f.statut === 'REJETEE') && actionLoading !== f.id ? handleDragStart : null}
                                                 onApprove={() => handleApprove(f.id)}
                                                 onReject={() => handleReject(f.id)}
                                                 onDelete={() => setDeleteTarget(f.id)}

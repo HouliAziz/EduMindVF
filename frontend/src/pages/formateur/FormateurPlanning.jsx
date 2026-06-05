@@ -1,152 +1,199 @@
-import { useState } from 'react'
-import { ChevronLeft, ChevronRight, Calendar, Users, MapPin, Clock, ArrowRight, BookOpen } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import {
+  ChevronLeft, ChevronRight, MapPin, Clock, Calendar,
+  ChevronRight as Arrow, Users, Loader2
+} from 'lucide-react'
+import { formateurAPI } from '../../services/api'
 import './FormateurPlanning.css'
 
-const DAYS = ['LUN', 'MAR', 'MER', 'JEU', 'VEN']
-const DATES = [14, 15, 16, 17, 18]
-const HOURS = ['08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00']
-const HOUR_H = 68
+const HOUR_HEIGHT = 70
+const DAYS = ['LUN', 'MAR', 'MER', 'JEU', 'VEN', 'SAM', 'DIM']
+const HOURS = ['09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00']
 
-const EVENTS = [
-    { id: 1, day: 0, startHour: 9, duration: 2, title: 'Management Agile', salle: 'Salle A201', participants: 12, color: 'navy', upcoming: false },
-    { id: 2, day: 1, startHour: 14, duration: 1.5, title: 'Leadership Avancé', salle: 'Salle B102', participants: 8, color: 'orange', upcoming: false },
-    { id: 3, day: 2, startHour: 9, duration: 3, title: 'Data Science IA', salle: 'Lab Informatique', participants: 15, color: 'navy', upcoming: true },
-    { id: 4, day: 4, startHour: 13, duration: 2, title: 'Soft Skills Pro', salle: 'Salle C305', participants: 10, color: 'teal', upcoming: false },
-]
+function getMonday(d) {
+  const date = new Date(d)
+  const day = date.getDay()
+  const diff = date.getDate() - day + (day === 0 ? -6 : 1)
+  date.setDate(diff)
+  date.setHours(0, 0, 0, 0)
+  return date
+}
 
-const UPCOMING_WEEK = [
-    { day: 'Lun 14', title: 'Management Agile', time: '09:00 - 11:00', salle: 'Salle A201' },
-    { day: 'Mar 15', title: 'Leadership Avancé', time: '14:00 - 15:30', salle: 'Salle B102' },
-    { day: 'Ven 18', title: 'Soft Skills Pro', time: '13:00 - 15:00', salle: 'Salle C305' },
-]
+function formatWeekRange(start) {
+  const end = new Date(start)
+  end.setDate(end.getDate() + 6)
+  const opts = { day: 'numeric', month: 'long' }
+  return `${start.toLocaleDateString('fr-FR', opts)} — ${end.toLocaleDateString('fr-FR', opts)}`
+}
 
 export default function FormateurPlanning() {
-    const [selectedEvent, setSelectedEvent] = useState(EVENTS[2])
-    const todayIdx = 2
+  const [weekOffset, setWeekOffset] = useState(0)
+  const [data, setData] = useState(null)
+  const [loading, setLoading] = useState(true)
 
+  const today = new Date()
+  const weekStart = getMonday(today)
+  weekStart.setDate(weekStart.getDate() + weekOffset * 7)
+
+  const weekDates = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(weekStart)
+    d.setDate(d.getDate() + i)
+    return d
+  })
+
+  useEffect(() => {
+    setLoading(true)
+    const ws = weekStart.toISOString().slice(0, 10)
+    formateurAPI.planning({ weekStart: ws })
+      .then(({ data: res }) => setData(res))
+      .catch(() => {})
+      .finally(() => setLoading(false))
+  }, [weekOffset])
+
+  if (loading) {
     return (
-        <div className="fp-page">
-            {/* Header */}
-            <div className="fp-header">
-                <div>
-                    <h1>Mon Planning <span className="fp-week-badge">Semaine 42</span></h1>
-                    <p>Voici vos sessions pour la semaine du 14 Octobre 2024.</p>
-                </div>
-                <div className="fp-week-nav">
-                    <button className="fp-nav-btn"><ChevronLeft size={16} /></button>
-                    <span>14 – 18 Oct 2024</span>
-                    <button className="fp-nav-btn"><ChevronRight size={16} /></button>
-                </div>
-            </div>
-
-            <div className="fp-body">
-                {/* Calendar */}
-                <div className="card fp-calendar">
-                    {/* Day headers */}
-                    <div className="fp-cal-header">
-                        <div className="fp-gutter" />
-                        {DAYS.map((d, i) => (
-                            <div key={d} className={`fp-day-head ${i === todayIdx ? 'today' : ''}`}>
-                                <span className="fp-day-name">{d}</span>
-                                <span className={`fp-day-num ${i === todayIdx ? 'today-num' : ''}`}>{DATES[i]}</span>
-                            </div>
-                        ))}
-                    </div>
-
-                    {/* Grid */}
-                    <div className="fp-grid">
-                        {/* Hours */}
-                        <div className="fp-hours-col">
-                            {HOURS.map(h => (
-                                <div key={h} className="fp-hour-label">{h}</div>
-                            ))}
-                        </div>
-
-                        {/* Day columns */}
-                        {DAYS.map((_, di) => (
-                            <div key={di} className={`fp-col ${di === todayIdx ? 'today-col' : ''}`}>
-                                {HOURS.map((_, hi) => <div key={hi} className="fp-hour-row" />)}
-                                {EVENTS.filter(e => e.day === di).map(ev => (
-                                    <div
-                                        key={ev.id}
-                                        className={`fp-event fp-event-${ev.color} ${selectedEvent?.id === ev.id ? 'selected' : ''}`}
-                                        style={{ top: (ev.startHour - 8) * HOUR_H, height: ev.duration * HOUR_H - 4 }}
-                                        onClick={() => setSelectedEvent(ev)}
-                                    >
-                                        <span className="fp-ev-title">{ev.title}</span>
-                                        <span className="fp-ev-meta"><MapPin size={10} /> {ev.salle}</span>
-                                        <span className="fp-ev-meta"><Users size={10} /> {ev.participants} apprenants</span>
-                                    </div>
-                                ))}
-                            </div>
-                        ))}
-                    </div>
-                </div>
-
-                {/* Side panel */}
-                <div className="fp-side">
-                    {/* Selected session detail */}
-                    {selectedEvent && (
-                        <div className="card fp-detail-card">
-                            <div className="fp-detail-badge">SESSION DU JOUR</div>
-                            <h3 className="fp-detail-title">{selectedEvent.title}</h3>
-                            <div className="fp-detail-meta">
-                                <div className="fp-detail-row"><Clock size={13} /> Mer 16 Oct • 09:00 – 12:00</div>
-                                <div className="fp-detail-row"><MapPin size={13} /> {selectedEvent.salle}</div>
-                                <div className="fp-detail-row"><Users size={13} /> {selectedEvent.participants} apprenants inscrits</div>
-                            </div>
-                            <div className="fp-detail-actions">
-                                <button className="btn btn-navy fp-action-btn">
-                                    <BookOpen size={14} /> Préparer la session
-                                </button>
-                                <button className="btn btn-ghost fp-action-btn">
-                                    <Users size={14} /> Voir les apprenants
-                                </button>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* This week list */}
-                    <div className="card fp-week-card">
-                        <div className="fp-week-head">
-                            <h4>Cette semaine</h4>
-                            <span className="fp-week-count">{UPCOMING_WEEK.length} sessions</span>
-                        </div>
-                        <div className="fp-week-list">
-                            {UPCOMING_WEEK.map((s, i) => (
-                                <div key={i} className="fp-week-item">
-                                    <div className="fp-week-dot" />
-                                    <div className="fp-week-info">
-                                        <span className="fp-week-title">{s.title}</span>
-                                        <span className="fp-week-sub">{s.day} • {s.time}</span>
-                                        <span className="fp-week-sub">{s.salle}</span>
-                                    </div>
-                                    <ArrowRight size={14} className="fp-week-arrow" />
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-
-                    {/* Stats mini */}
-                    <div className="card fp-stats-card">
-                        <h4>Ce mois</h4>
-                        <div className="fp-mini-stats">
-                            <div className="fp-mini-stat">
-                                <span className="fp-mini-val">8</span>
-                                <span className="fp-mini-label">Sessions</span>
-                            </div>
-                            <div className="fp-mini-stat">
-                                <span className="fp-mini-val">94</span>
-                                <span className="fp-mini-label">Apprenants</span>
-                            </div>
-                            <div className="fp-mini-stat">
-                                <span className="fp-mini-val">4.7</span>
-                                <span className="fp-mini-label">Note moy.</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+      <div className="fp-page" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '300px', gap: '10px', color: 'var(--gray-400)' }}>
+        <Loader2 size={24} className="spin" />
+        <span>Chargement du planning...</span>
+      </div>
     )
+  }
+
+  const events = data?.events || []
+  const spotlight = data?.spotlight || null
+  const upcoming = data?.upcoming || []
+  const monthStats = data?.monthStats || { total: 0, terminees: 0, restantes: 0 }
+  const prenom = data?.prenom || 'Formateur'
+
+  return (
+    <div className="fp-page">
+      <div className="fp-header">
+        <div>
+          <h1>Bonjour, {prenom}</h1>
+          <p>Voici votre emploi du temps pour la {formatWeekRange(weekStart)}.</p>
+        </div>
+        <div className="fp-week-nav">
+          <button className="fp-week-btn" onClick={() => setWeekOffset(v => v - 1)}>
+            <ChevronLeft size={16} />
+          </button>
+          <span className="fp-week-label">
+            <Calendar size={14} />
+            {formatWeekRange(weekStart)}
+          </span>
+          <button className="fp-week-btn" onClick={() => setWeekOffset(v => v + 1)}>
+            <ChevronRight size={16} />
+          </button>
+        </div>
+      </div>
+
+      <div className="fp-body">
+        <div className="card fp-cal-card">
+          <div className="fp-cal-header">
+            <div className="fp-gutter" />
+            {weekDates.map((d, i) => {
+              const isToday = d.toDateString() === today.toDateString()
+              return (
+                <div key={i} className={`fp-day-head ${isToday ? 'today' : ''}`}>
+                  <span className="fp-day-name">{DAYS[i]}</span>
+                  <span className={`fp-day-num ${isToday ? 'today-num' : ''}`}>{d.getDate()}</span>
+                </div>
+              )
+            })}
+          </div>
+
+          <div className="fp-grid">
+            <div className="fp-hours">
+              {HOURS.map(h => (
+                <div key={h} className="fp-hour-label">{h}</div>
+              ))}
+            </div>
+
+            {weekDates.map((d, dayIdx) => {
+              const isToday = d.toDateString() === today.toDateString()
+              const dayEvents = events.filter(e => e.dayIndex === dayIdx)
+              return (
+                <div key={dayIdx} className={`fp-col ${isToday ? 'today-col' : ''}`}>
+                  {HOURS.map((_, hi) => (
+                    <div key={hi} className="fp-hour-row" />
+                  ))}
+                  {dayEvents.map(ev => {
+                    const duration = Math.max(ev.duration, 0.5)
+                    const topPx = (ev.startHour - 9) * HOUR_HEIGHT
+                    const heightPx = duration * HOUR_HEIGHT - 4
+                    return (
+                      <div key={ev.id} className="fp-event" style={{ top: topPx, height: heightPx, background: ev.bgColor, color: ev.textColor }}>
+                        <span className="fp-ev-title">{ev.title}</span>
+                        <span className="fp-ev-sub">{ev.subtitle}</span>
+                      </div>
+                    )
+                  })}
+                </div>
+              )
+            })}
+          </div>
+        </div>
+
+        <div className="fp-side">
+          {spotlight && (
+            <div className="card fp-spotlight">
+              <div className="fp-spot-badge">PROCHAINE SESSION</div>
+              <h3 className="fp-spot-title">{spotlight.title}</h3>
+              <div className="fp-spot-meta">
+                <div className="fp-meta-row"><Calendar size={14} /> {spotlight.date} {spotlight.month}</div>
+                <div className="fp-meta-row"><Clock size={14} /> {spotlight.time}</div>
+              </div>
+              <button className="btn btn-navy fp-spot-btn">
+                Préparer la session <Arrow size={14} />
+              </button>
+            </div>
+          )}
+
+          <div className="card fp-upcoming">
+            <div className="fp-up-head">
+              <h4>À venir</h4>
+            </div>
+            <div className="fp-up-list">
+              {upcoming.length === 0 ? (
+                <div style={{ padding: '12px 8px', fontSize: '13px', color: 'var(--gray-400)' }}>Aucune session à venir.</div>
+              ) : (
+                upcoming.slice(0, 5).map((item, i) => (
+                  <div key={i} className="fp-up-item">
+                    <div className="fp-up-date">
+                      <span className="fp-up-day">{item.date}</span>
+                      <span className="fp-up-month">{item.month}</span>
+                    </div>
+                    <div className="fp-up-info">
+                      <span className="fp-up-title">{item.title}</span>
+                      <span className="fp-up-time">{item.time}</span>
+                    </div>
+                    <Arrow size={14} className="fp-up-arrow" />
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+
+          <div className="card fp-month-stats">
+            <div className="fp-up-head">
+              <h4>Ce mois-ci</h4>
+            </div>
+            <div className="fp-ms-grid">
+              <div className="fp-ms-stat">
+                <span className="fp-ms-num">{monthStats.total}</span>
+                <span className="fp-ms-label">Total sessions</span>
+              </div>
+              <div className="fp-ms-stat">
+                <span className="fp-ms-num fp-ms-done">{monthStats.terminees}</span>
+                <span className="fp-ms-label">Terminées</span>
+              </div>
+              <div className="fp-ms-stat">
+                <span className="fp-ms-num fp-ms-left">{monthStats.restantes}</span>
+                <span className="fp-ms-label">Restantes</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
 }

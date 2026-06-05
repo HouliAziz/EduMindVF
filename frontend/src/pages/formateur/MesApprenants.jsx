@@ -1,147 +1,196 @@
-import { useState } from 'react'
-import { Search, ChevronDown, ChevronUp, Filter } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Search, ChevronDown, ChevronUp, Filter, Loader2, Star, Save } from 'lucide-react'
+import { formateurAPI } from '../../services/api'
 import './MesApprenants.css'
 
-const APPRENANTS = [
-    { id: 1, prenom: 'Jean-Marc', nom: 'Laurent', formation: 'Management Agile 2.0', presences: 6, total: 8, note: 4.5, statut: 'EN_COURS', initials: 'JL', color: '#1B3A7A' },
-    { id: 2, prenom: 'Sarah', nom: 'Dupont', formation: 'Management Agile 2.0', presences: 8, total: 8, note: 4.8, statut: 'CERTIFIE', initials: 'SD', color: '#F26522' },
-    { id: 3, prenom: 'Mohamed', nom: 'Aziz', formation: 'Data Science Fondamentaux', presences: 4, total: 6, note: 3.9, statut: 'EN_COURS', initials: 'MA', color: '#10b981' },
-    { id: 4, prenom: 'Léa', nom: 'Vasseur', formation: 'Design Thinking Workshop', presences: 2, total: 4, note: null, statut: 'A_VENIR', initials: 'LV', color: '#6366f1' },
-    { id: 5, prenom: 'Pierre', nom: 'Martin', formation: 'Management Agile 2.0', presences: 3, total: 8, note: 2.5, statut: 'ABANDON', initials: 'PM', color: '#9aa3b8' },
-    { id: 6, prenom: 'Camille', nom: 'Bernard', formation: 'Leadership Situationnel', presences: 6, total: 6, note: 4.9, statut: 'CERTIFIE', initials: 'CB', color: '#F26522' },
-]
-
-const STATUT_STYLE = {
-    EN_COURS: { label: 'En cours', cls: 'badge-active' },
-    CERTIFIE: { label: 'Certifié', cls: 'badge-cert' },
-    A_VENIR: { label: 'À venir', cls: 'badge-planned' },
-    ABANDON: { label: 'Abandon', cls: 'badge-cancelled' },
-}
-
 export default function MesApprenants() {
-    const [search, setSearch] = useState('')
-    const [expanded, setExpanded] = useState(null)
-    const [filterSession, setFilterSession] = useState('all')
+  const [search, setSearch] = useState('')
+  const [expanded, setExpanded] = useState(null)
+  const [filterFormation, setFilterFormation] = useState('all')
+  const [apprenants, setApprenants] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [noteDrafts, setNoteDrafts] = useState({})
+  const [savingNote, setSavingNote] = useState(null)
 
-    const sessions = [...new Set(APPRENANTS.map(a => a.formation))]
+  useEffect(() => {
+    setLoading(true)
+    formateurAPI.apprenants()
+      .then(({ data }) => setApprenants(data))
+      .catch(() => {})
+      .finally(() => setLoading(false))
+  }, [])
 
-    const filtered = APPRENANTS.filter(a =>
-        (`${a.prenom} ${a.nom}`).toLowerCase().includes(search.toLowerCase()) &&
-        (filterSession === 'all' || a.formation === filterSession)
-    )
+  const formations = [...new Set(apprenants.flatMap(a => a.inscriptions.map(i => i.formation)))]
 
-    const toggle = (id) => setExpanded(e => e === id ? null : id)
+  const filtered = apprenants.filter(a =>
+    (`${a.prenom} ${a.nom}`).toLowerCase().includes(search.toLowerCase()) &&
+    (filterFormation === 'all' || a.inscriptions.some(i => i.formation === filterFormation))
+  )
 
+  const toggle = (id) => {
+    setExpanded(e => e === id ? null : id)
+    setNoteDrafts({})
+  }
+
+  const handleNoteSave = async (inscriptionId) => {
+    const val = noteDrafts[inscriptionId]
+    if (val === undefined) return
+    const note = val === '' ? null : parseFloat(val)
+    if (note !== null && (isNaN(note) || note < 0 || note > 5)) return
+    setSavingNote(inscriptionId)
+    try {
+      await formateurAPI.updateNote({ inscriptionId, noteFinale: note })
+      setApprenants(prev => prev.map(p => ({
+        ...p,
+        inscriptions: p.inscriptions.map(i =>
+          i.inscriptionId === inscriptionId ? { ...i, noteFinale: note } : i
+        )
+      })))
+    } catch (e) {
+      alert('Erreur lors de la sauvegarde de la note.')
+    }
+    setSavingNote(null)
+  }
+
+  if (loading) {
     return (
-        <div className="ma-page">
-            {/* Header */}
-            <div className="ma-header">
-                <div>
-                    <h1>Mes Apprenants</h1>
-                    <p>Suivez la progression et les résultats de vos apprenants.</p>
-                </div>
-                <div className="ma-header-stats">
-                    <span className="ma-total-badge">{APPRENANTS.length} apprenants</span>
-                    <span className="ma-cert-badge">{APPRENANTS.filter(a => a.statut === 'CERTIFIE').length} certifiés</span>
-                </div>
-            </div>
-
-            {/* Toolbar */}
-            <div className="ma-toolbar card">
-                <div className="ma-search">
-                    <Search size={14} />
-                    <input placeholder="Rechercher un apprenant..." value={search} onChange={e => setSearch(e.target.value)} />
-                </div>
-                <div className="ma-filter">
-                    <Filter size={14} />
-                    <select value={filterSession} onChange={e => setFilterSession(e.target.value)}>
-                        <option value="all">Toutes les sessions</option>
-                        {sessions.map(s => <option key={s}>{s}</option>)}
-                    </select>
-                </div>
-            </div>
-
-            {/* Table */}
-            <div className="card ma-table-card">
-                <table className="ma-table">
-                    <thead>
-                        <tr>
-                            <th>APPRENANT</th>
-                            <th>FORMATION</th>
-                            <th>PRÉSENCES</th>
-                            <th>NOTE FINALE</th>
-                            <th>STATUT</th>
-                            <th></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {filtered.map(a => {
-                            const isOpen = expanded === a.id
-                            const st = STATUT_STYLE[a.statut]
-                            const presPct = Math.round((a.presences / a.total) * 100)
-                            return (
-                                <>
-                                    <tr key={a.id} className={`ma-row ${isOpen ? 'expanded' : ''}`} onClick={() => toggle(a.id)}>
-                                        <td>
-                                            <div className="ma-user">
-                                                <div className="ma-avatar" style={{ background: a.color }}>{a.initials}</div>
-                                                <div>
-                                                    <div className="ma-name">{a.prenom} {a.nom}</div>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td><span className="ma-formation">{a.formation}</span></td>
-                                        <td>
-                                            <div className="ma-pres">
-                                                <span className="ma-pres-count">{a.presences}/{a.total}</span>
-                                                <div className="progress-bar" style={{ width: 80 }}>
-                                                    <div className="progress-fill" style={{ width: `${presPct}%`, background: presPct < 50 ? 'var(--danger)' : presPct < 75 ? 'var(--orange)' : 'var(--success)' }} />
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td>
-                                            {a.note
-                                                ? <span className="ma-note" style={{ color: a.note >= 4 ? 'var(--success)' : a.note >= 3 ? 'var(--warning)' : 'var(--danger)' }}>★ {a.note}/5</span>
-                                                : <span className="ma-note-na">—</span>
-                                            }
-                                        </td>
-                                        <td><span className={`badge ${st.cls}`}>{st.label}</span></td>
-                                        <td>
-                                            <button className="ma-expand-btn">
-                                                {isOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-                                            </button>
-                                        </td>
-                                    </tr>
-                                    {isOpen && (
-                                        <tr key={`${a.id}-detail`} className="ma-detail-row">
-                                            <td colSpan={6}>
-                                                <div className="ma-detail">
-                                                    <div className="ma-detail-section">
-                                                        <h4>Présences</h4>
-                                                        <div className="ma-attendance-grid">
-                                                            {Array.from({ length: a.total }).map((_, i) => (
-                                                                <div key={i} className={`ma-att-dot ${i < a.presences ? 'present' : 'absent'}`} title={`Séance ${i + 1}`} />
-                                                            ))}
-                                                        </div>
-                                                        <span className="ma-att-legend"><span className="dot-present" /> Présent &nbsp; <span className="dot-absent" /> Absent</span>
-                                                    </div>
-                                                    <div className="ma-detail-section">
-                                                        <h4>Notes</h4>
-                                                        <div className="ma-notes-form">
-                                                            <textarea className="ma-notes-input" placeholder="Ajouter une note sur cet apprenant..." rows={3} />
-                                                            <button className="btn btn-navy" style={{ padding: '8px 16px', fontSize: 12 }}>Enregistrer</button>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    )}
-                                </>
-                            )
-                        })}
-                    </tbody>
-                </table>
-            </div>
-        </div>
+      <div className="ma-page" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '300px', gap: '10px', color: 'var(--gray-400)' }}>
+        <Loader2 size={24} className="spin" />
+        <span>Chargement des apprenants...</span>
+      </div>
     )
+  }
+
+  return (
+    <div className="ma-page">
+      <div className="ma-header">
+        <div>
+          <h1>Mes Apprenants</h1>
+          <p>Suivez la progression et les résultats de vos apprenants.</p>
+        </div>
+        <div className="ma-header-stats">
+          <span className="ma-total-badge">{apprenants.length} apprenants</span>
+        </div>
+      </div>
+
+      <div className="ma-toolbar card">
+        <div className="ma-search">
+          <Search size={14} />
+          <input placeholder="Rechercher un apprenant..." value={search} onChange={e => setSearch(e.target.value)} />
+        </div>
+        <div className="ma-filter">
+          <Filter size={14} />
+          <select value={filterFormation} onChange={e => setFilterFormation(e.target.value)}>
+            <option value="all">Toutes les formations</option>
+            {formations.map(f => <option key={f}>{f}</option>)}
+          </select>
+        </div>
+      </div>
+
+      <div className="card ma-table-card">
+        <table className="ma-table">
+          <thead>
+            <tr>
+              <th>APPRENANT</th>
+              <th>FORMATION(S)</th>
+              <th>PRÉSENCES</th>
+              <th>NOTE FINALE</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {filtered.map(a => {
+              const isOpen = expanded === a.id
+              const presPct = a.total > 0 ? Math.round((a.presences / a.total) * 100) : 0
+              const allNotes = a.inscriptions.map(i => i.noteFinale).filter(n => n !== null)
+              const avgNote = allNotes.length > 0 ? (allNotes.reduce((s, n) => s + n, 0) / allNotes.length).toFixed(1) : null
+              const firstFormation = a.inscriptions[0]?.formation
+              const extraCount = a.inscriptions.length - 1
+              return (
+                <tr key={a.id} className={isOpen ? 'ma-row-expanded' : ''}>
+                  <td>
+                    <div className="ma-user">
+                      <div className="ma-avatar" style={{ background: a.color }}>{a.initials}</div>
+                      <span className="ma-name">{a.prenom} {a.nom}</span>
+                    </div>
+                  </td>
+                  <td>
+                    <span className="ma-formation-badge">{firstFormation}</span>
+                    {extraCount > 0 && <span className="ma-formation-extra">+{extraCount}</span>}
+                  </td>
+                  <td>
+                    <div className="ma-pres">
+                      <span className="ma-pres-count">{a.presences}/{a.total}</span>
+                      <div className="progress-bar" style={{ width: 80 }}>
+                        <div className="progress-fill" style={{ width: `${presPct}%`, background: presPct < 50 ? 'var(--danger)' : presPct < 75 ? 'var(--orange)' : 'var(--success)' }} />
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    {avgNote !== null ? <><Star size={12} fill="var(--orange)" color="var(--orange)" /> {avgNote}/5</> : <span className="ma-note-na">—</span>}
+                  </td>
+                  <td>
+                    <button className="ma-expand-btn" onClick={() => toggle(a.id)}>
+                      {isOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                    </button>
+                  </td>
+                </tr>
+              )
+            })}
+          </tbody>
+        </table>
+      </div>
+
+      {expanded && filtered.filter(a => a.id === expanded).map(a => (
+        <div key={a.id} className="card ma-detail-panel">
+          {a.inscriptions.map(ins => {
+            const pct = ins.total > 0 ? Math.round((ins.presences / ins.total) * 100) : 0
+            const draftVal = noteDrafts[ins.inscriptionId] !== undefined ? noteDrafts[ins.inscriptionId] : (ins.noteFinale ?? '')
+            return (
+              <div key={ins.inscriptionId} className="ma-ins-section">
+                <h4>{ins.formation}</h4>
+                <div className="ma-ins-row">
+                  <div className="ma-ins-col">
+                    <strong>Présences</strong>
+                    <div className="ma-session-list">
+                      {ins.sessions.map(s => (
+                        <div key={s.sessionId} className={`ma-session-item ${s.present ? 'present' : 'absent'}`}>
+                          <span className={`ma-sess-dot ${s.present ? 'dot-present' : 'dot-absent'}`} />
+                          <span className="ma-sess-date">{s.date}</span>
+                          <span className="ma-sess-titre">{s.titre}</span>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="ma-ins-pres-summary">{ins.presences}/{ins.total} présences ({pct}%)</div>
+                  </div>
+                  <div className="ma-ins-col">
+                    <strong>Note finale</strong>
+                    <div className="ma-note-block">
+                      <input
+                        type="number"
+                        min="0"
+                        max="5"
+                        step="0.5"
+                        value={draftVal}
+                        className="ma-note-input-lg"
+                        onChange={e => setNoteDrafts(d => ({ ...d, [ins.inscriptionId]: e.target.value }))}
+                      />
+                      <button
+                        className="btn btn-navy ma-save-btn"
+                        onClick={() => handleNoteSave(ins.inscriptionId)}
+                        disabled={savingNote === ins.inscriptionId}
+                      >
+                        <Save size={14} />
+                        {savingNote === ins.inscriptionId ? '...' : 'Enregistrer'}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      ))}
+    </div>
+  )
 }

@@ -55,6 +55,7 @@ export const formationsAPI = {
   unarchive: (id) => api.patch(`/formations/${id}/unarchive`, {}),
   approve: (id) => api.patch(`/formations/${id}/approve`, {}),
   reject: (id) => api.patch(`/formations/${id}/reject`, {}),
+  reconsider: (id) => api.patch(`/formations/${id}/reconsider`, {}),
 }
 
 // ─── Sessions ────────────────────────────────────────────────────────────────
@@ -81,6 +82,16 @@ export const participantsAPI = {
 export const inscriptionsAPI = {
   ajouter: (data) => api.post('/inscriptions/ajouter', data),
   supprimer: (id) => api.delete(`/inscriptions/${id}`),
+  bySession: (sessionId) => api.get(`/presences/session/${sessionId}`),
+  batchPresence: (data) => api.post('/presences/batch', data),
+}
+
+// ─── Formateur ───────────────────────────────────────────────────────────────
+export const formateurAPI = {
+  planning: (params) => api.get('/formateur/planning', { params }),
+  sessions: () => api.get('/formateur/sessions'),
+  apprenants: () => api.get('/formateur/apprenants'),
+  updateNote: (data) => api.patch('/formateur/apprenants/note', data),
 }
 
 // ─── Demandes ─────────────────────────────────────────────────────────────────

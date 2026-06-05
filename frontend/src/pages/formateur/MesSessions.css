@@ -188,7 +188,7 @@
     color: var(--gray-400);
 }
 
-.ms-row-capacity {
+.ms-row-pres-bar {
     display: flex;
     flex-direction: column;
     gap: 5px;
@@ -242,7 +242,7 @@
 }
 
 .ms-action-btn {
-    display: flex;
+    display: inline-flex;
     align-items: center;
     gap: 6px;
     padding: 7px 13px;
@@ -256,6 +256,7 @@
     cursor: pointer;
     transition: all .15s;
     white-space: nowrap;
+    text-decoration: none;
 }
 
 .ms-action-btn:hover {
@@ -271,6 +272,159 @@
 .ms-action-primary:hover {
     background: var(--navy-dark);
     color: var(--white);
+}
+
+/* Presence Modal */
+.ms-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.25);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  animation: fadeIn .15s ease;
+}
+
+.ms-modal {
+  background: var(--white);
+  border-radius: var(--radius-lg);
+  width: 100%;
+  max-width: 600px;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: var(--shadow-xl);
+  animation: scaleIn .15s ease;
+}
+
+.ms-modal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 24px;
+  border-bottom: 1px solid var(--gray-100);
+}
+
+.ms-modal-head h3 {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--gray-900);
+}
+
+.ms-modal-close {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-md);
+  border: none;
+  background: var(--gray-100);
+  color: var(--gray-500);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all .15s;
+}
+
+.ms-modal-close:hover {
+  background: var(--gray-200);
+  color: var(--gray-700);
+}
+
+.ms-modal-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px 24px;
+}
+
+.ms-pres-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.ms-pres-table th {
+  text-align: left;
+  padding: 8px 12px;
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--gray-400);
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  border-bottom: 1px solid var(--gray-100);
+}
+
+.ms-pres-table td {
+  padding: 10px 12px;
+  font-size: 13px;
+  color: var(--gray-700);
+  border-bottom: 1px solid var(--gray-50);
+}
+
+.ms-pres-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 99px;
+  border: 1px solid var(--gray-200);
+  background: var(--white);
+  font-size: 12px;
+  font-weight: 600;
+  font-family: var(--font-display);
+  color: var(--gray-600);
+  cursor: pointer;
+  transition: all .15s;
+}
+
+.ms-pres-status:hover {
+  border-color: var(--gray-300);
+  background: var(--gray-50);
+}
+
+.ms-pres-status--present {
+  background: #16a34a !important;
+  border-color: #16a34a !important;
+  color: #fff !important;
+}
+
+.ms-pres-status--present:hover {
+  background: #15803d !important;
+  border-color: #15803d !important;
+}
+
+.ms-pres-status--absent {
+  background: #dc2626 !important;
+  border-color: #dc2626 !important;
+  color: #fff !important;
+}
+
+.ms-pres-status--absent:hover {
+  background: #b91c1c !important;
+  border-color: #b91c1c !important;
+}
+
+.ms-modal-foot {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 16px 24px;
+  border-top: 1px solid var(--gray-100);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(.95); }
+  to { opacity: 1; transform: scale(1); }
 }
 
 @media (max-width: 900px) {
