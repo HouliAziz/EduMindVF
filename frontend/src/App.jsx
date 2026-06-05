@@ -34,6 +34,7 @@ import FormateurPlanning from './pages/formateur/FormateurPlanning'
 import MesSessions from './pages/formateur/MesSessions'
 import MesApprenants from './pages/formateur/MesApprenants'
 import EvaluationsFormateur from './pages/formateur/EvaluationsFormateur'
+import FormateurRessources from './pages/formateur/FormateurRessources'
 
 // Responsable
 import ResponsableDashboard from './pages/responsable/ResponsableDashboard'
@@ -180,7 +181,7 @@ function AppRoutes() {
         <Route path="planning" element={<FormateurPlanning />} />
         <Route path="sessions" element={<MesSessions />} />
         <Route path="apprenants" element={<MesApprenants />} />
-        <Route path="ressources" element={<ComingSoon name="Ressources" />} />
+        <Route path="ressources" element={<FormateurRessources />} />
         <Route path="evaluations" element={<EvaluationsFormateur />} />
         <Route path="profile" element={<Profile />} />
       </Route>

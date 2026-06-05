@@ -32,22 +32,28 @@ export default function MesApprenants() {
     setNoteDrafts({})
   }
 
-  const handleNoteSave = async (inscriptionId) => {
-    const val = noteDrafts[inscriptionId]
-    if (val === undefined) return
-    const note = val === '' ? null : parseFloat(val)
-    if (note !== null && (isNaN(note) || note < 0 || note > 5)) return
-    setSavingNote(inscriptionId)
+  const handleSaveAllNotes = async () => {
+    const entries = Object.entries(noteDrafts).filter(([, v]) => v !== undefined)
+    if (entries.length === 0) return
+    setSavingNote('all')
     try {
-      await formateurAPI.updateNote({ inscriptionId, noteFinale: note })
+      for (const [inscriptionId, val] of entries) {
+        const note = val === '' ? null : parseFloat(val)
+        if (note !== null && (isNaN(note) || note < 0 || note > 5)) continue
+        await formateurAPI.updateNote({ inscriptionId, noteFinale: note })
+      }
       setApprenants(prev => prev.map(p => ({
         ...p,
         inscriptions: p.inscriptions.map(i =>
-          i.inscriptionId === inscriptionId ? { ...i, noteFinale: note } : i
+          noteDrafts[i.inscriptionId] !== undefined
+            ? { ...i, noteFinale: noteDrafts[i.inscriptionId] === '' ? null : parseFloat(noteDrafts[i.inscriptionId]) }
+            : i
         )
       })))
+      setNoteDrafts({})
+      setExpanded(null)
     } catch (e) {
-      alert('Erreur lors de la sauvegarde de la note.')
+      alert('Erreur lors de la sauvegarde des notes.')
     }
     setSavingNote(null)
   }
@@ -99,14 +105,14 @@ export default function MesApprenants() {
             </tr>
           </thead>
           <tbody>
-            {filtered.map(a => {
+            {filtered.flatMap(a => {
               const isOpen = expanded === a.id
               const presPct = a.total > 0 ? Math.round((a.presences / a.total) * 100) : 0
               const allNotes = a.inscriptions.map(i => i.noteFinale).filter(n => n !== null)
               const avgNote = allNotes.length > 0 ? (allNotes.reduce((s, n) => s + n, 0) / allNotes.length).toFixed(1) : null
               const firstFormation = a.inscriptions[0]?.formation
               const extraCount = a.inscriptions.length - 1
-              return (
+              return [
                 <tr key={a.id} className={isOpen ? 'ma-row-expanded' : ''}>
                   <td>
                     <div className="ma-user">
@@ -134,63 +140,64 @@ export default function MesApprenants() {
                       {isOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
                     </button>
                   </td>
-                </tr>
-              )
+                </tr>,
+                isOpen && (
+                  <tr key={`${a.id}-detail`} className="ma-detail-row">
+                    <td colSpan={5}>
+                      <div className="ma-detail-inner">
+                        {a.inscriptions.map(ins => {
+                          const pct = ins.total > 0 ? Math.round((ins.presences / ins.total) * 100) : 0
+                          const draftVal = noteDrafts[ins.inscriptionId] !== undefined ? noteDrafts[ins.inscriptionId] : (ins.noteFinale ?? '')
+                          return (
+                            <div key={ins.inscriptionId} className="ma-ins-section">
+                              <h4>{ins.formation}</h4>
+                              <div className="ma-ins-row">
+                                <div className="ma-ins-col">
+                                  <strong>Présences</strong>
+                                  <div className="ma-session-list">
+                                    {ins.sessions.map(s => (
+                                      <div key={s.sessionId} className={`ma-session-item ${s.present ? 'present' : 'absent'}`}>
+                                        <span className={`ma-sess-dot ${s.present ? 'dot-present' : 'dot-absent'}`} />
+                                        <span className="ma-sess-date">{s.date}</span>
+                                        <span className="ma-sess-titre">{s.titre}</span>
+                                      </div>
+                                    ))}
+                                  </div>
+                                  <div className="ma-ins-pres-summary">{ins.presences}/{ins.total} présences ({pct}%)</div>
+                                </div>
+                                <div className="ma-ins-col">
+                                  <strong>Note finale</strong>
+                                  <div className="ma-note-block">
+                                    <input
+                                      type="number"
+                                      min="0"
+                                      max="5"
+                                      step="0.5"
+                                      value={draftVal}
+                                      className="ma-note-input-lg"
+                                      onChange={e => setNoteDrafts(d => ({ ...d, [ins.inscriptionId]: e.target.value }))}
+                                    />
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          )
+                        })}
+                        <div className="ma-save-all-row">
+                          <button className="btn btn-navy" onClick={handleSaveAllNotes} disabled={savingNote === 'all' || Object.keys(noteDrafts).length === 0}>
+                            <Save size={14} />
+                            {savingNote === 'all' ? 'Enregistrement...' : 'Enregistrer les notes'}
+                          </button>
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+                ),
+              ]
             })}
           </tbody>
         </table>
       </div>
-
-      {expanded && filtered.filter(a => a.id === expanded).map(a => (
-        <div key={a.id} className="card ma-detail-panel">
-          {a.inscriptions.map(ins => {
-            const pct = ins.total > 0 ? Math.round((ins.presences / ins.total) * 100) : 0
-            const draftVal = noteDrafts[ins.inscriptionId] !== undefined ? noteDrafts[ins.inscriptionId] : (ins.noteFinale ?? '')
-            return (
-              <div key={ins.inscriptionId} className="ma-ins-section">
-                <h4>{ins.formation}</h4>
-                <div className="ma-ins-row">
-                  <div className="ma-ins-col">
-                    <strong>Présences</strong>
-                    <div className="ma-session-list">
-                      {ins.sessions.map(s => (
-                        <div key={s.sessionId} className={`ma-session-item ${s.present ? 'present' : 'absent'}`}>
-                          <span className={`ma-sess-dot ${s.present ? 'dot-present' : 'dot-absent'}`} />
-                          <span className="ma-sess-date">{s.date}</span>
-                          <span className="ma-sess-titre">{s.titre}</span>
-                        </div>
-                      ))}
-                    </div>
-                    <div className="ma-ins-pres-summary">{ins.presences}/{ins.total} présences ({pct}%)</div>
-                  </div>
-                  <div className="ma-ins-col">
-                    <strong>Note finale</strong>
-                    <div className="ma-note-block">
-                      <input
-                        type="number"
-                        min="0"
-                        max="5"
-                        step="0.5"
-                        value={draftVal}
-                        className="ma-note-input-lg"
-                        onChange={e => setNoteDrafts(d => ({ ...d, [ins.inscriptionId]: e.target.value }))}
-                      />
-                      <button
-                        className="btn btn-navy ma-save-btn"
-                        onClick={() => handleNoteSave(ins.inscriptionId)}
-                        disabled={savingNote === ins.inscriptionId}
-                      >
-                        <Save size={14} />
-                        {savingNote === ins.inscriptionId ? '...' : 'Enregistrer'}
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )
-          })}
-        </div>
-      ))}
     </div>
   )
 }

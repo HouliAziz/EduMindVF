@@ -92,6 +92,8 @@ export const formateurAPI = {
   sessions: () => api.get('/formateur/sessions'),
   apprenants: () => api.get('/formateur/apprenants'),
   updateNote: (data) => api.patch('/formateur/apprenants/note', data),
+  ressources: () => api.get('/formateur/ressources'),
+  deleteRessource: (id) => api.delete(`/formateur/ressources/${id}`),
 }
 
 // ─── Demandes ─────────────────────────────────────────────────────────────────

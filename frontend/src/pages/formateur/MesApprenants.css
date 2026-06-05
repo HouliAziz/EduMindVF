@@ -249,9 +249,15 @@
     color: var(--gray-700);
 }
 
-/* Detail panel */
-.ma-detail-panel {
-    padding: 24px;
+/* Detail row inside table */
+.ma-detail-row td {
+    padding: 0 !important;
+    background: var(--gray-50) !important;
+    border-bottom: 1px solid var(--gray-100);
+}
+
+.ma-detail-inner {
+    padding: 20px 24px 24px 76px;
     display: flex;
     flex-direction: column;
     gap: 24px;
@@ -411,4 +417,11 @@
     padding: 8px 14px;
     font-size: 12.5px;
     white-space: nowrap;
+}
+
+.ma-save-all-row {
+    display: flex;
+    justify-content: flex-end;
+    padding-top: 12px;
+    border-top: 1px solid var(--gray-100);
 }
