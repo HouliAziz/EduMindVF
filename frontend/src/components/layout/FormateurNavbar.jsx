@@ -1,6 +1,7 @@
 import { NavLink, useNavigate } from 'react-router-dom'
-import { Bell, LogOut } from 'lucide-react'
+import { LogOut } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
+import NotificationDropdown from '../notifications/NotificationDropdown'
 import './FormateurNavbar.css'
 
 const navLinks = [
@@ -44,10 +45,7 @@ export default function FormateurNavbar() {
                 </nav>
 
                 <div className="fn-right">
-                    <button className="fn-icon-btn" title="Notifications">
-                        <Bell size={18} />
-                        <span className="fn-notif-dot" />
-                    </button>
+                    <NotificationDropdown />
                     <div className="fn-user" onClick={() => navigate('/formateur/profile')}>
                         <div className="fn-avatar">{initials}</div>
                         <span className="fn-username">{user?.prenom ?? 'Formateur'}</span>

@@ -54,12 +54,9 @@ function getFirstDayOfMonth(year, month) {
   return d === 0 ? 6 : d - 1
 }
 
-function calculateDateFin(startDateStr, durationDays) {
-  if (!startDateStr) return ''
-  const days = parseInt(durationDays) || 1
-  const date = new Date(startDateStr)
-  date.setDate(date.getDate() + (days - 1))
-  return date.toISOString().split('T')[0]
+function calculateDateFin(startDateStr, _durationDays) {
+  // Session = 1 jour : dateFin = dateDebut
+  return startDateStr || ''
 }
 
 export default function Sessions() {

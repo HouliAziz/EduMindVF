@@ -2,13 +2,14 @@ import { NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import {
   LayoutDashboard, BookOpen, CalendarDays, Users, UserCheck,
-  Banknote, Bell, Brain, LogOut, UserRoundCog, User
+  Banknote, Bell, Brain, LogOut, UserRoundCog, User, FileText
 } from 'lucide-react'
 import './Sidebar.css'
 
 const navItems = [
   { icon: LayoutDashboard, label: 'Dashboard',     to: '/admin/dashboard' },
   { icon: BookOpen,        label: 'Formations',    to: '/admin/formations' },
+  { icon: FileText,        label: 'Demandes',      to: '/admin/demandes' },
   { icon: CalendarDays,    label: 'Sessions',      to: '/admin/sessions' },
   { icon: UserRoundCog,    label: 'Utilisateurs',   to: '/admin/utilisateurs' },
   { icon: Banknote,        label: 'Finances',      to: '/admin/finances' },

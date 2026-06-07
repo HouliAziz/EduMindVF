@@ -1,6 +1,7 @@
 import { NavLink, useNavigate } from 'react-router-dom'
-import { Bell, LogOut } from 'lucide-react'
+import { LogOut } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
+import NotificationDropdown from '../notifications/NotificationDropdown'
 import './ResponsableNavbar.css'
 
 const navLinks = [
@@ -45,10 +46,7 @@ export default function ResponsableNavbar() {
                 </nav>
 
                 <div className="rn-right">
-                    <button className="rn-icon-btn" title="Notifications">
-                        <Bell size={17} />
-                        <span className="rn-notif-dot" />
-                    </button>
+                    <NotificationDropdown />
                     <div className="rn-user" onClick={() => navigate('/responsable/profile')}>
                         <div className="rn-avatar">{initials}</div>
                         <div className="rn-user-info">

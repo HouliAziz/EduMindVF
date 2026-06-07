@@ -21,6 +21,7 @@ import AnalyseIA from './pages/admin/AnalyseIA'
 import Finances from './pages/admin/Finances'
 import Utilisateurs from './pages/admin/Utilisateurs'
 import Profile from './pages/admin/Profile'
+import AdminNotifications from './pages/admin/Notifications'
 
 // Participant
 import ParticipantPlanning from './pages/participant/ParticipantPlanning'
@@ -152,12 +153,13 @@ function AppRoutes() {
         <Route index element={<Navigate to="dashboard" replace />} />
         <Route path="dashboard" element={<AdminDashboard />} />
         <Route path="formations" element={<ReadOnlyFormations />} />
+        <Route path="demandes" element={<GestionDemandes />} />
         <Route path="sessions" element={<Sessions />} />
         <Route path="participants" element={<ComingSoon name="Participants" />} />
         <Route path="formateurs" element={<ComingSoon name="Formateurs" />} />
         <Route path="utilisateurs" element={<Utilisateurs />} />
         <Route path="finances" element={<Finances />} />
-        <Route path="notifications" element={<ComingSoon name="Notifications" />} />
+        <Route path="notifications" element={<AdminNotifications />} />
         <Route path="ia" element={<AnalyseIA />} />
         <Route path="support" element={<ComingSoon name="Support" />} />
         <Route path="settings" element={<ComingSoon name="Paramètres" />} />

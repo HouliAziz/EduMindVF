@@ -1,6 +1,7 @@
 import { NavLink, useNavigate } from 'react-router-dom'
-import { Bell, MessageSquare, LogOut } from 'lucide-react'
+import { MessageSquare, LogOut } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
+import NotificationDropdown from '../notifications/NotificationDropdown'
 import './ParticipantNavbar.css'
 
 const navLinks = [
@@ -50,10 +51,7 @@ export default function ParticipantNavbar() {
         </nav>
 
         <div className="p-navbar-right">
-          <button className="p-icon-btn" title="Notifications">
-            <Bell size={18} />
-            <span className="p-notif-dot" />
-          </button>
+          <NotificationDropdown />
           <button className="p-icon-btn" title="Messages">
             <MessageSquare size={18} />
           </button>

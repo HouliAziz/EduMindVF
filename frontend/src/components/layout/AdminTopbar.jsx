@@ -1,6 +1,7 @@
 import { useState } from 'react'
-import { Search, Bell, HelpCircle, ChevronDown } from 'lucide-react'
+import { Search, HelpCircle, ChevronDown } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
+import NotificationDropdown from '../notifications/NotificationDropdown'
 import './AdminTopbar.css'
 
 export default function AdminTopbar() {
@@ -24,10 +25,7 @@ export default function AdminTopbar() {
       </div>
 
       <div className="topbar-right">
-        <button className="topbar-icon-btn" title="Notifications">
-          <Bell size={18} />
-          <span className="notif-dot" />
-        </button>
+        <NotificationDropdown linkTo="/admin/notifications" />
         <button className="topbar-icon-btn" title="Aide">
           <HelpCircle size={18} />
         </button>

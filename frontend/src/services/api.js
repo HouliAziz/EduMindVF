@@ -132,6 +132,9 @@ export const responsableAPI = {
 
 // ─── Notifications ───────────────────────────────────────────────────────────
 export const notificationsAPI = {
+  list: (params) => api.get('/notifications', { params }),
+  unreadCount: () => api.get('/notifications/unread-count'),
+  markAsRead: (id) => api.patch(`/notifications/${id}/read`),
   historique: (userId) => api.get(`/notifications/historique/${userId}`),
 }
 
